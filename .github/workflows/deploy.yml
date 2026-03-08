@@ -46,14 +46,14 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/medapp:latest
+            ghcr.io/${{ github.repository_owner }}/medapp:${{ github.sha }}
 
       - name: Deployment summary
         run: |
           echo "✅ Docker image pushed to:"
-          echo "   ghcr.io/${{ github.repository }}:latest"
+          echo "   ghcr.io/${{ github.repository_owner }}/medapp:latest"
           echo ""
           echo "Pull and run on your server:"
-          echo "   docker pull ghcr.io/${{ github.repository }}:latest"
+          echo "   docker pull ghcr.io/${{ github.repository_owner }}/medapp:latest"
           echo "   docker-compose up -d"
