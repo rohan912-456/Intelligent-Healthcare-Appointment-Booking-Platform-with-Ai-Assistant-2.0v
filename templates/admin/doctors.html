@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Manage Doctors{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold"><i class="bi bi-person-badge me-2 text-primary"></i>Manage Doctors</h4>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm rounded-3">← Dashboard</a>
+  </div>
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4 small fw-semibold text-muted">Doctor</th>
+            <th class="small fw-semibold text-muted">Specialty</th>
+            <th class="small fw-semibold text-muted">Hospital</th>
+            <th class="small fw-semibold text-muted">Bookings</th>
+            <th class="small fw-semibold text-muted">Status</th>
+            <th class="small fw-semibold text-muted">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in doctors %}
+          <tr>
+            <td class="ps-4 fw-semibold small">{{ d.name }}</td>
+            <td class="small text-muted">{{ d.specialty }}</td>
+            <td class="small text-muted">{{ d.hospital }}</td>
+            <td class="small">{{ d.bookings|length }}</td>
+            <td>
+              <span class="badge rounded-pill {{ 'bg-success' if d.available else 'bg-secondary' }}">
+                {{ 'Available' if d.available else 'Unavailable' }}
+              </span>
+            </td>
+            <td>
+              <form method="POST" action="{{ url_for('admin.toggle_doctor', doctor_id=d.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="btn btn-sm {{ 'btn-outline-danger' if d.available else 'btn-outline-success' }} rounded-3">
+                  {{ 'Disable' if d.available else 'Enable' }}
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- ── Hero ──────────────────────────────────────────────── -->
+<section class="hero-section">
+  <div class="hero-bg-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+  <div class="container position-relative">
+    <div class="row align-items-center min-vh-70 py-5">
+      <div class="col-lg-7 text-white">
+        <div class="hero-badge mb-3"><i class="bi bi-shield-check me-2"></i>Trusted by 10,000+ patients in Nagpur</div>
+        <h1 class="hero-title">Your Health, <br><span class="text-gradient-warm">Our Priority</span></h1>
+        <p class="hero-subtitle">Book appointments with top specialists across Nagpur's leading hospitals — fast, easy, and secure.</p>
+        <div class="d-flex flex-wrap gap-3 mt-4">
+          <a href="{{ url_for('booking.book') }}" class="btn btn-hero-primary btn-lg px-4">
+            <i class="bi bi-calendar-plus me-2"></i>Book Appointment
+          </a>
+          <a href="#doctors" class="btn btn-hero-outline btn-lg px-4">
+            <i class="bi bi-search me-2"></i>Find Doctors
+          </a>
+        </div>
+        <div class="hero-stats mt-5 d-flex flex-wrap gap-4">
+          <div class="hero-stat"><div class="stat-num">{{ doctors|length }}+</div><div class="stat-label">Specialists</div></div>
+          <div class="hero-stat"><div class="stat-num">5</div><div class="stat-label">Hospitals</div></div>
+          <div class="hero-stat"><div class="stat-num">24/7</div><div class="stat-label">AI Support</div></div>
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-flex justify-content-center">
+        <div class="hero-card-float">
+          <div class="floating-card p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="doc-avatar-sm bg-primary"><i class="bi bi-person-fill text-white"></i></div>
+              <div>
+                <div class="fw-semibold" style="font-size:.9rem">Next Available</div>
+                <div class="text-muted" style="font-size:.8rem">Today, 10:00 AM</div>
+              </div>
+              <span class="badge bg-success ms-auto">Open</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-geo-alt text-primary"></i>
+              <span style="font-size:.82rem" class="text-muted">Orange City Hospital</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Doctors ────────────────────────────────────────────── -->
+<section id="doctors" class="py-5 bg-light-subtle">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <div class="section-badge">Our Specialists</div>
+      <h2 class="section-title">Meet Our Doctors</h2>
+      <p class="text-muted">Expert care across multiple specialties at top Nagpur hospitals</p>
+    </div>
+    <div class="row g-4">
+      {% set specialty_icons = {
+        'Cardiologist': 'bi-heart-pulse',
+        'General Physician': 'bi-person-lines-fill',
+        'Orthopedic Surgeon': 'bi-bandaid',
+        'Neurologist': 'bi-activity',
+        'Pulmonologist': 'bi-lungs'
+      } %}
+      {% for doc in doctors %}
+      <div class="col-md-6 col-lg-4">
+        <div class="doctor-card h-100">
+          <div class="doctor-card-top">
+            <div class="doc-avatar">
+              <i class="bi {{ specialty_icons.get(doc.specialty, 'bi-person-fill') }}"></i>
+            </div>
+            <span class="doc-specialty-badge">{{ doc.specialty }}</span>
+          </div>
+          <div class="doctor-card-body">
+            <h5 class="doc-name">{{ doc.name }}</h5>
+            <p class="doc-hospital"><i class="bi bi-building me-1 text-primary"></i>{{ doc.hospital }}</p>
+            <div class="doc-meta d-flex gap-3 mb-3">
+              <span class="text-muted small"><i class="bi bi-star-fill text-warning me-1"></i>4.8</span>
+              <span class="text-muted small"><i class="bi bi-clock me-1"></i>Mon–Sat</span>
+            </div>
+            <a href="{{ url_for('booking.book') }}?doctor={{ doc.id }}" class="btn btn-book w-100">
+              <i class="bi bi-calendar-check me-2"></i>Book Appointment
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── Map ───────────────────────────────────────────────── -->
+<section class="py-5">
+  <div class="container">
+    <div class="section-header text-center mb-4">
+      <div class="section-badge">Locations</div>
+      <h2 class="section-title">Find Us On The Map</h2>
+      <p class="text-muted">All hospitals conveniently located across Nagpur</p>
+    </div>
+    {% if maps_key and maps_key != 'YOUR_GOOGLE_MAPS_KEY_HERE' %}
+    <div id="map" class="medapp-map rounded-4 shadow"></div>
+    {% else %}
+    <div class="map-placeholder rounded-4 d-flex flex-column align-items-center justify-content-center shadow-sm">
+      <i class="bi bi-geo-alt-fill text-primary" style="font-size:3rem"></i>
+      <h5 class="mt-3 text-muted">Map Preview</h5>
+      <p class="text-muted text-center small mb-0">Add your <strong>GOOGLE_MAPS_KEY</strong> in <code>.env</code> to enable interactive maps.</p>
+    </div>
+    {% endif %}
+    <!-- Doctor list next to map -->
+    <div class="row mt-4 g-3">
+      {% for doc in doctors %}
+      <div class="col-md-6 col-lg-4">
+        <div class="map-list-card d-flex align-items-center gap-3 p-3 rounded-3 shadow-sm bg-white">
+          <div class="map-pin-num">{{ loop.index }}</div>
+          <div>
+            <div class="fw-semibold small">{{ doc.name }}</div>
+            <div class="text-muted" style="font-size:.78rem">{{ doc.hospital }}</div>
+          </div>
+          <a href="{{ url_for('booking.book') }}" class="btn btn-sm btn-outline-primary ms-auto">Book</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ──────────────────────────────────────── -->
+<section class="py-5 bg-light-subtle">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <div class="section-badge">Simple Process</div>
+      <h2 class="section-title">How It Works</h2>
+    </div>
+    <div class="row g-4 justify-content-center">
+      {% for step in [
+        ('1', 'bi-person-plus', 'Create Account', 'Sign up in seconds with your email and password.'),
+        ('2', 'bi-search-heart', 'Choose a Doctor', 'Browse specialists and pick the right one for you.'),
+        ('3', 'bi-calendar2-check', 'Book Instantly', 'Select your preferred date and time slot.'),
+        ('4', 'bi-envelope-check', 'Get Confirmed', 'Receive an email confirmation with all details.'),
+      ] %}
+      <div class="col-6 col-md-3">
+        <div class="step-card text-center p-4">
+          <div class="step-num">{{ step[0] }}</div>
+          <div class="step-icon mb-3"><i class="bi {{ step[1] }}"></i></div>
+          <h6 class="fw-bold">{{ step[2] }}</h6>
+          <p class="text-muted small mb-0">{{ step[3] }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if maps_key and maps_key != 'YOUR_GOOGLE_MAPS_KEY_HERE' %}
+<script>
+const DOCTORS = {{ doctors_json | tojson }};
+function initMap() {
+  const center = { lat: 21.1300, lng: 79.0650 };
+  const map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 13, center,
+    styles: [
+      { featureType:"all", elementType:"geometry", stylers:[{color:"#f5f5f5"}] },
+      { featureType:"water", elementType:"geometry", stylers:[{color:"#c9d6f0"}] },
+      { featureType:"road", elementType:"geometry.stroke", stylers:[{color:"#ffffff"}] }
+    ]
+  });
+  DOCTORS.forEach((d, i) => {
+    const marker = new google.maps.Marker({
+      position: { lat: d.lat, lng: d.lng },
+      map,
+      title: d.name,
+      label: { text: String(i+1), color: "#fff" },
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: "#0d6efd", fillOpacity: 1,
+        strokeColor: "#fff", strokeWeight: 2, scale: 14
+      }
+    });
+    const info = new google.maps.InfoWindow({
+      content: `<div style="font-family:sans-serif;min-width:160px">
+        <strong>${d.name}</strong><br>
+        <small>${d.specialty}</small><br>
+        <small style="color:#666">${d.hospital}</small>
+        </div>`
+    });
+    marker.addListener("click", () => info.open(map, marker));
+  });
+}
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ maps_key }}&callback=initMap"></script>
+{% endif %}
+{% endblock %}

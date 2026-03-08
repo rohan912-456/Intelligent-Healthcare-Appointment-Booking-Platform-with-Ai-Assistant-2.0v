@@ -1,0 +1,59 @@
+name: MedApp CD — Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+
+    # ── Only runs if CI passed ───────────────────────
+    needs: []
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── Option 1: Deploy via SSH to VPS ─────────────
+      # Uncomment and add these GitHub Secrets:
+      #   DEPLOY_HOST, DEPLOY_USER, DEPLOY_KEY, DEPLOY_PATH
+      #
+      # - name: Deploy to VPS via SSH
+      #   uses: appleboy/ssh-action@v1.0.3
+      #   with:
+      #     host: ${{ secrets.DEPLOY_HOST }}
+      #     username: ${{ secrets.DEPLOY_USER }}
+      #     key: ${{ secrets.DEPLOY_KEY }}
+      #     script: |
+      #       cd ${{ secrets.DEPLOY_PATH }}
+      #       git pull origin main
+      #       docker-compose up --build -d
+      #       docker system prune -f
+
+      # ── Option 2: Push Docker image to GHCR ─────────
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+      - name: Deployment summary
+        run: |
+          echo "✅ Docker image pushed to:"
+          echo "   ghcr.io/${{ github.repository }}:latest"
+          echo ""
+          echo "Pull and run on your server:"
+          echo "   docker pull ghcr.io/${{ github.repository }}:latest"
+          echo "   docker-compose up -d"

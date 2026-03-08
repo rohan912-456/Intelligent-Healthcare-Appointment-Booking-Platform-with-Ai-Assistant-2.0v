@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="container-fluid py-4 px-4">
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <div class="admin-badge-icon"><i class="bi bi-speedometer2 text-white"></i></div>
+    <div>
+      <h4 class="fw-bold mb-0">Admin Dashboard</h4>
+      <small class="text-muted">System overview and management</small>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row g-3 mb-4">
+    {% for item in [
+      ('Users', stats.users, 'bi-people-fill', 'primary'),
+      ('Doctors', stats.doctors, 'bi-person-badge-fill', 'info'),
+      ('Total Bookings', stats.bookings, 'bi-calendar-check-fill', 'success'),
+      ('Confirmed', stats.confirmed, 'bi-check-circle-fill', 'success'),
+      ('Cancelled', stats.cancelled, 'bi-x-circle-fill', 'danger'),
+      ('Messages', stats.messages, 'bi-envelope-fill', 'warning'),
+    ] %}
+    <div class="col-6 col-md-4 col-xl-2">
+      <div class="admin-stat-card rounded-4 p-3 bg-white shadow-sm text-center">
+        <div class="admin-stat-icon text-{{ item[3] }} mb-2"><i class="bi {{ item[1] }}"></i></div>
+        <div class="fw-bold fs-4">{{ item[2] }}</div>
+        <div class="text-muted small">{{ item[0] }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="row g-4">
+    <!-- Recent Bookings -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-transparent border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
+          <h6 class="fw-bold mb-0"><i class="bi bi-calendar3 me-2 text-primary"></i>Recent Bookings</h6>
+          <a href="{{ url_for('admin.bookings') }}" class="btn btn-sm btn-outline-primary rounded-3">View All</a>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-4 small fw-semibold text-muted">#</th>
+                  <th class="small fw-semibold text-muted">Patient</th>
+                  <th class="small fw-semibold text-muted">Doctor</th>
+                  <th class="small fw-semibold text-muted">Date</th>
+                  <th class="small fw-semibold text-muted">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for b in recent_bookings %}
+                <tr>
+                  <td class="ps-4 text-muted small">{{ b.id }}</td>
+                  <td>
+                    <div class="fw-semibold small">{{ b.patient_name }}</div>
+                    <div class="text-muted" style="font-size:.73rem">{{ b.patient_email }}</div>
+                  </td>
+                  <td class="small">{{ b.doctor.name }}</td>
+                  <td class="small">{{ b.appointment_date.strftime('%d %b %Y') }} {{ b.appointment_time }}</td>
+                  <td>
+                    <span class="badge rounded-pill {{ 'bg-success' if b.status == 'confirmed' else 'bg-secondary' }}">
+                      {{ b.status }}
+                    </span>
+                  </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-4">No bookings yet</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Messages -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-transparent border-0 pt-3 pb-0">
+          <h6 class="fw-bold mb-0"><i class="bi bi-envelope me-2 text-warning"></i>Recent Messages</h6>
+        </div>
+        <div class="card-body">
+          {% for m in messages %}
+          <div class="admin-message-item p-3 rounded-3 mb-2 bg-light">
+            <div class="d-flex justify-content-between">
+              <span class="fw-semibold small">{{ m.name }}</span>
+              <span class="text-muted" style="font-size:.7rem">{{ m.created_at.strftime('%d %b') }}</span>
+            </div>
+            <div class="text-muted small text-truncate">{{ m.message }}</div>
+          </div>
+          {% else %}
+          <p class="text-muted small text-center py-3">No messages yet</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Nav -->
+  <div class="row g-3 mt-2">
+    {% for link in [
+      ('Manage Doctors', 'admin.doctors', 'bi-person-badge', 'primary'),
+      ('All Bookings', 'admin.bookings', 'bi-calendar3', 'success'),
+      ('All Users', 'admin.users', 'bi-people', 'info'),
+    ] %}
+    <div class="col-md-4">
+      <a href="{{ url_for(link[1]) }}" class="card border-0 shadow-sm rounded-4 text-decoration-none admin-quick-link p-3 d-flex flex-row align-items-center gap-3 bg-white">
+        <div class="admin-ql-icon text-{{ link[3] }}"><i class="bi {{ link[2] }} fs-4"></i></div>
+        <span class="fw-semibold text-dark">{{ link[0] }}</span>
+        <i class="bi bi-chevron-right ms-auto text-muted"></i>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

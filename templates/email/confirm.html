@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"/></head>
+<body style="font-family: 'Segoe UI', sans-serif; background:#f8f9fa; padding:30px;">
+  <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+    <div style="background:linear-gradient(135deg,#0d6efd,#48b8ff);padding:28px 32px;">
+      <h2 style="color:#fff;margin:0;font-size:1.4rem">🏥 Appointment Confirmed</h2>
+      <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:.9rem">MedApp — Smart Health Booking</p>
+    </div>
+    <div style="padding:28px 32px;">
+      <p style="color:#212529">Hi <strong>{{ booking.patient_name }}</strong>,</p>
+      <p style="color:#495057">Your appointment has been successfully booked. Here are your details:</p>
+      <div style="background:#f1f5ff;border-radius:10px;padding:16px 20px;margin:20px 0">
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="padding:6px 0;color:#6c757d;font-size:.85rem;width:40%">Doctor</td><td style="font-weight:600">{{ doctor.name }}</td></tr>
+          <tr><td style="padding:6px 0;color:#6c757d;font-size:.85rem">Specialty</td><td>{{ doctor.specialty }}</td></tr>
+          <tr><td style="padding:6px 0;color:#6c757d;font-size:.85rem">Hospital</td><td>{{ doctor.hospital }}</td></tr>
+          <tr><td style="padding:6px 0;color:#6c757d;font-size:.85rem">Date</td><td style="font-weight:600">{{ booking.appointment_date.strftime('%A, %d %B %Y') }}</td></tr>
+          <tr><td style="padding:6px 0;color:#6c757d;font-size:.85rem">Time</td><td style="font-weight:600">{{ booking.appointment_time }}</td></tr>
+          {% if booking.reason %}<tr><td style="padding:6px 0;color:#6c757d;font-size:.85rem;vertical-align:top">Reason</td><td>{{ booking.reason }}</td></tr>{% endif %}
+        </table>
+      </div>
+      <p style="color:#495057;font-size:.9rem">Please arrive 10 minutes early. If you need to cancel or reschedule, please log in to your MedApp account.</p>
+      <p style="color:#6c757d;font-size:.8rem;margin-top:24px;border-top:1px solid #e9ecef;padding-top:16px">
+        For emergencies, call <strong>112</strong>. This is an automated message — please do not reply.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

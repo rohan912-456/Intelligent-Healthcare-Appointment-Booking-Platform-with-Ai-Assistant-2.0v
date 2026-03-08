@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}My Bookings{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+      <div class="section-badge mb-2">Dashboard</div>
+      <h2 class="section-title mb-0">My Appointments</h2>
+    </div>
+    <a href="{{ url_for('booking.book') }}" class="btn btn-primary rounded-3 px-4">
+      <i class="bi bi-plus-lg me-2"></i>New Appointment
+    </a>
+  </div>
+
+  {% if bookings %}
+  <div class="row g-4">
+    {% for b in bookings %}
+    <div class="col-lg-6">
+      <div class="booking-card rounded-4 shadow-sm p-4 bg-white {{ 'cancelled-booking' if b.status == 'cancelled' else '' }}">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h6 class="fw-bold mb-1">{{ b.doctor.name }}</h6>
+            <small class="text-muted"><i class="bi bi-building me-1"></i>{{ b.doctor.hospital }}</small>
+          </div>
+          <span class="badge rounded-pill {{ 'bg-success' if b.status == 'confirmed' else 'bg-secondary' }} px-3 py-2">
+            {{ b.status|capitalize }}
+          </span>
+        </div>
+        <div class="booking-meta d-flex flex-wrap gap-3 mb-3">
+          <span class="meta-item"><i class="bi bi-calendar3 text-primary me-1"></i>{{ b.appointment_date.strftime('%d %b %Y') }}</span>
+          <span class="meta-item"><i class="bi bi-clock text-primary me-1"></i>{{ b.appointment_time }}</span>
+          <span class="meta-item"><i class="bi bi-telephone text-primary me-1"></i>{{ b.patient_phone }}</span>
+        </div>
+        {% if b.reason %}
+        <p class="small text-muted mb-3 booking-reason"><i class="bi bi-chat-left-text me-1"></i>{{ b.reason }}</p>
+        {% endif %}
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted" style="font-size:.75rem">Booked {{ b.created_at.strftime('%d %b %Y') }}</span>
+          {% if b.status == 'confirmed' %}
+          <form method="POST" action="{{ url_for('booking.cancel', booking_id=b.id) }}" class="d-inline"
+                onsubmit="return confirm('Cancel this appointment?')">
+            {{ csrf_token() if csrf_token is defined }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-sm btn-outline-danger rounded-3">
+              <i class="bi bi-x-circle me-1"></i>Cancel
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state text-center py-5">
+    <div class="empty-icon"><i class="bi bi-calendar-x"></i></div>
+    <h5 class="mt-3 fw-semibold">No appointments yet</h5>
+    <p class="text-muted">Book your first appointment with one of our specialists.</p>
+    <a href="{{ url_for('booking.book') }}" class="btn btn-primary rounded-3 px-4 mt-2">
+      <i class="bi bi-calendar-plus me-2"></i>Book Now
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}All Bookings{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold"><i class="bi bi-calendar3 me-2 text-success"></i>All Bookings</h4>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm rounded-3">← Dashboard</a>
+  </div>
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4 small fw-semibold text-muted">#</th>
+            <th class="small fw-semibold text-muted">Patient</th>
+            <th class="small fw-semibold text-muted">Doctor</th>
+            <th class="small fw-semibold text-muted">Date & Time</th>
+            <th class="small fw-semibold text-muted">Phone</th>
+            <th class="small fw-semibold text-muted">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bookings.items %}
+          <tr>
+            <td class="ps-4 text-muted small">{{ b.id }}</td>
+            <td>
+              <div class="fw-semibold small">{{ b.patient_name }}</div>
+              <div class="text-muted" style="font-size:.73rem">{{ b.patient_email }}</div>
+            </td>
+            <td class="small">{{ b.doctor.name }}</td>
+            <td class="small">{{ b.appointment_date.strftime('%d %b %Y') }} {{ b.appointment_time }}</td>
+            <td class="small text-muted">{{ b.patient_phone }}</td>
+            <td>
+              <span class="badge rounded-pill {{ 'bg-success' if b.status == 'confirmed' else 'bg-secondary' }}">
+                {{ b.status }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <!-- Pagination -->
+    {% if bookings.pages > 1 %}
+    <div class="d-flex justify-content-center py-3">
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          {% for p in bookings.iter_pages() %}
+            {% if p %}
+            <li class="page-item {{ 'active' if p == bookings.page else '' }}">
+              <a class="page-link rounded-2" href="?page={{ p }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
