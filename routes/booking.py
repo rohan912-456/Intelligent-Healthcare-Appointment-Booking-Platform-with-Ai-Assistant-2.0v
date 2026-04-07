@@ -120,8 +120,7 @@ def dashboard():
             ).order_by(Booking.appointment_date, Booking.appointment_time).all()
 
     else:  # patient
-        upcoming = [b for b in my_bookings if b.status ==
-                    'confirmed' and b.appointment_date >= today_date]
+        upcoming = [b for b in my_bookings if b.status == 'confirmed' and b.appointment_date >= today_date]
         doc_ids = list(set([b.doctor_id for b in upcoming]))
         if doc_ids:
             queue_bookings = Booking.query.filter(
