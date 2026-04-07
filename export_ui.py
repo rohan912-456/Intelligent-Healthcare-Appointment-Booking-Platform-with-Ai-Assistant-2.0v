@@ -9,9 +9,9 @@ with open(output_file, 'w', encoding='utf-8') as outfile:
         for root, _, files in os.walk(folder):
             for file in files:
                 filepath = os.path.join(root, file)
-                outfile.write(f'{"="*80}\n')
+                outfile.write(f'{"=" * 80}\n')
                 outfile.write(f'FILE: {filepath}\n')
-                outfile.write(f'{"="*80}\n\n')
+                outfile.write(f'{"=" * 80}\n\n')
                 try:
                     with open(filepath, 'r', encoding='utf-8') as infile:
                         outfile.write(infile.read())

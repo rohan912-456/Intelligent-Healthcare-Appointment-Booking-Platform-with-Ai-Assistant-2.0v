@@ -80,8 +80,8 @@ def test_booking_requires_login(client):
     assert rv.status_code in (302, 401, 200)
 
 
-def test_my_bookings_requires_login(client):
-    rv = client.get("/booking/my-bookings", follow_redirects=False)
+def test_dashboard_requires_login(client):
+    rv = client.get("/booking/dashboard", follow_redirects=False)
     assert rv.status_code in (302, 401, 200)
 
 

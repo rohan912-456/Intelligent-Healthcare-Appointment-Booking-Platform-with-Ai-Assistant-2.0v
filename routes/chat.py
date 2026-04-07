@@ -76,8 +76,8 @@ def message():
         # System prompt as the very first message if history is empty or as context
         # In Gemini 1.5, we can use system_instruction in the model constructor
         # but here we'll just prepend it or use a simplified approach
-        
-        for turn in history[:-1]: # All except the current message
+
+        for turn in history[:-1]:  # All except the current message
             role = "user" if turn["role"] == "user" else "model"
             gemini_history.append({"role": role, "parts": [turn["content"]]})
 
@@ -87,10 +87,10 @@ def message():
             model_name="gemini-3.1-flash-lite-preview",
             system_instruction=SYSTEM_PROMPT
         )
-        
+
         chat = model.start_chat(history=gemini_history)
         response = chat.send_message(user_text)
-        
+
         reply = response.text.strip()
         history.append({"role": "assistant", "content": reply})
         session["chat_history"] = history

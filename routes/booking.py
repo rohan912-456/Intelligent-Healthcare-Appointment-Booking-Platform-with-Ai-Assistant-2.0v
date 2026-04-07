@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 def book():
     form = BookingForm()
     doctors = Doctor.query.filter_by(available=True).all()
-    form.doctor_id.choices = [(d.id, f"{d.name} — {d.hospital}") for d in doctors]
+    form.doctor_id.choices = [
+        (d.id, f"{d.name} — {d.hospital}") for d in doctors]
 
     if form.validate_on_submit():
         booking = Booking(
@@ -31,7 +32,8 @@ def book():
         )
         db.session.add(booking)
         db.session.commit()
-        logger.info("Booking created: ID=%s for %s", booking.id, booking.patient_email)
+        logger.info("Booking created: ID=%s for %s",
+                    booking.id, booking.patient_email)
 
         # Email confirmation
         if current_app.config.get("MAIL_ENABLED"):
@@ -45,17 +47,19 @@ def book():
                     doctor=doctor,
                 ),
             )
-            
+
             # Send asynchronously
             import threading
             app = current_app._get_current_object()
+
             def send_async_email(app_obj, message):
                 with app_obj.app_context():
                     try:
                         mail.send(message)
                     except Exception as e:
-                        app_obj.logger.warning("Could not send confirmation email: %s", e)
-            
+                        app_obj.logger.warning(
+                            "Could not send confirmation email: %s", e)
+
             threading.Thread(target=send_async_email, args=(app, msg)).start()
 
         flash("Appointment booked successfully! A confirmation has been sent to your email.", "success")
@@ -78,7 +82,7 @@ def dashboard():
         .order_by(Booking.appointment_date.desc(), Booking.appointment_time.desc())
         .all()
     )
-    
+
     queue_filter = request.args.get('queue_filter', 'today')
     today_date = date.today()
     if queue_filter == 'today':
@@ -98,31 +102,32 @@ def dashboard():
     queue_bookings = []
     if current_user.is_admin:
         queue_bookings = Booking.query.filter(
-            Booking.appointment_date >= start_date, 
-            Booking.appointment_date <= end_date, 
+            Booking.appointment_date >= start_date,
+            Booking.appointment_date <= end_date,
             Booking.status == 'confirmed'
         ).order_by(Booking.appointment_date, Booking.appointment_time).all()
-        
+
     elif current_user.role == 'doctor' and current_user.doctor_profile:
         hospital = current_user.doctor_profile.hospital
         hospital_doctors = Doctor.query.filter_by(hospital=hospital).all()
         doc_ids = [d.id for d in hospital_doctors]
         if doc_ids:
             queue_bookings = Booking.query.filter(
-                Booking.doctor_id.in_(doc_ids), 
-                Booking.appointment_date >= start_date, 
-                Booking.appointment_date <= end_date, 
+                Booking.doctor_id.in_(doc_ids),
+                Booking.appointment_date >= start_date,
+                Booking.appointment_date <= end_date,
                 Booking.status == 'confirmed'
             ).order_by(Booking.appointment_date, Booking.appointment_time).all()
-            
-    else: # patient
-        upcoming = [b for b in my_bookings if b.status == 'confirmed' and b.appointment_date >= today_date]
+
+    else:  # patient
+        upcoming = [b for b in my_bookings if b.status ==
+                    'confirmed' and b.appointment_date >= today_date]
         doc_ids = list(set([b.doctor_id for b in upcoming]))
         if doc_ids:
             queue_bookings = Booking.query.filter(
-                Booking.doctor_id.in_(doc_ids), 
-                Booking.appointment_date >= start_date, 
-                Booking.appointment_date <= end_date, 
+                Booking.doctor_id.in_(doc_ids),
+                Booking.appointment_date >= start_date,
+                Booking.appointment_date <= end_date,
                 Booking.status == 'confirmed'
             ).order_by(Booking.appointment_date, Booking.appointment_time).all()
 
@@ -137,15 +142,15 @@ def dashboard():
             if current_user.role not in ['admin', 'doctor']:
                 q_b.masked_name = f"Patient {idx + 1}"
             masked_queue.append(q_b)
-            
+
     # sort back masked_queue by date/time
     masked_queue.sort(key=lambda x: (x.appointment_date, x.appointment_time))
 
     return render_template(
-        "booking_dashboard.html", 
-        my_bookings=my_bookings, 
-        queue_bookings=masked_queue, 
-        queue_filter=queue_filter, 
+        "booking_dashboard.html",
+        my_bookings=my_bookings,
+        queue_bookings=masked_queue,
+        queue_filter=queue_filter,
         today_date=today_date
     )
 
@@ -170,19 +175,21 @@ def export_ics(booking_id):
     if booking.user_id != current_user.id and not current_user.is_admin:
         flash("Unauthorized.", "danger")
         return redirect(url_for("booking.dashboard"))
-        
+
     try:
-        start_time = datetime.strptime(booking.appointment_time, "%H:%M").time()
+        start_time = datetime.strptime(
+            booking.appointment_time, "%H:%M").time()
     except ValueError:
-        start_time = datetime.strptime(booking.appointment_time, "%H:%M:%S").time()
+        start_time = datetime.strptime(
+            booking.appointment_time, "%H:%M:%S").time()
 
     start_dt = datetime.combine(booking.appointment_date, start_time)
     end_dt = start_dt + timedelta(minutes=30)
-    
+
     dtstamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     dtstart = start_dt.strftime("%Y%m%dT%H%M%S")
     dtend = end_dt.strftime("%Y%m%dT%H%M%S")
-    
+
     ics_content = f"""BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//MedApp//NONSGML v1.0//EN
@@ -198,7 +205,8 @@ END:VEVENT
 END:VCALENDAR"""
 
     response = Response(ics_content.strip(), mimetype='text/calendar')
-    response.headers["Content-Disposition"] = f"attachment; filename=medapp_appointment_{booking.id}.ics"
+    response.headers[
+        "Content-Disposition"] = f"attachment; filename=medapp_appointment_{booking.id}.ics"
     return response
 
 
@@ -209,14 +217,15 @@ def reschedule(booking_id):
     if booking.user_id != current_user.id and not current_user.is_admin:
         flash("Unauthorized.", "danger")
         return redirect(url_for("booking.dashboard"))
-        
+
     form = BookingForm(obj=booking)
     doctors = Doctor.query.filter_by(available=True).all()
-    form.doctor_id.choices = [(d.id, f"{d.name} — {d.hospital}") for d in doctors]
-    
+    form.doctor_id.choices = [
+        (d.id, f"{d.name} — {d.hospital}") for d in doctors]
+
     if request.method == "GET":
         form.doctor_id.data = booking.doctor_id
-        
+
     if form.validate_on_submit():
         booking.doctor_id = form.doctor_id.data
         booking.patient_name = form.patient_name.data
@@ -229,8 +238,9 @@ def reschedule(booking_id):
         db.session.commit()
         flash("Appointment rescheduled successfully!", "success")
         return redirect(url_for("booking.dashboard"))
-        
+
     return render_template("booking_reschedule.html", form=form, booking=booking)
+
 
 @booking_bp.route("/confirmation/<int:booking_id>")
 @login_required

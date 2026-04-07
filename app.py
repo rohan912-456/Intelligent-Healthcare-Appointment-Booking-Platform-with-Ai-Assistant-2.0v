@@ -53,7 +53,8 @@ def _seed_data(app):
     # Seed admin first
     admin_email = app.config["ADMIN_EMAIL"]
     if not User.query.filter_by(email=admin_email).first():
-        admin = User(name="Admin", email=admin_email, is_admin=True, role="admin")
+        admin = User(name="Admin", email=admin_email,
+                     is_admin=True, role="admin")
         admin.set_password(app.config["ADMIN_PASSWORD"])
         db.session.add(admin)
         db.session.commit()
@@ -90,24 +91,25 @@ def _seed_data(app):
 
         for i, (d_name, d_spec, h_idx) in enumerate(doc_data):
             h_name, lat, lng = base_hospitals[h_idx]
-            doc_email = f"doctor{i+1}@medapp.com"
+            doc_email = f"doctor{i + 1}@medapp.com"
             doc_user = User(name=d_name, email=doc_email, role="doctor")
             doc_user.set_password("Doctor@123")
             db.session.add(doc_user)
-            db.session.flush() # Flush to get doc_user.id
+            db.session.flush()  # Flush to get doc_user.id
 
             doc = Doctor(
-                name=d_name, 
+                name=d_name,
                 specialty=d_spec,
-                hospital=h_name, 
-                lat=lat, 
+                hospital=h_name,
+                lat=lat,
                 lng=lng,
                 user_id=doc_user.id
             )
             db.session.add(doc)
-            
+
         db.session.commit()
-        app.logger.info("Seeded %d doctors with login accounts.", len(doc_data))
+        app.logger.info(
+            "Seeded %d doctors with login accounts.", len(doc_data))
 
 
 if __name__ == "__main__":
