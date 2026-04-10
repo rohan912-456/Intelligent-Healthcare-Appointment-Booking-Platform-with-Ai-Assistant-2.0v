@@ -1,53 +1,94 @@
 {% extends "base.html" %}
+
 {% block title %}Booking Confirmed{% endblock %}
+
+{% block extra_css %}
+<style>
+    .conf-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.4); }
+    .conf-circle { width: 140px; height: 140px; border-radius: 50%; display: flex; items-center; justify-center; box-shadow: 0 30px 60px -15px rgba(113, 216, 199, 0.3); }
+    @keyframes checkPop {
+        0% { transform: scale(0.5); opacity: 0; }
+        60% { transform: scale(1.1); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .check-pop { animation: checkPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5 text-center">
-  <div class="row justify-content-center">
-    <div class="col-lg-6 col-md-8">
-      <div class="card border-0 shadow-lg rounded-4 p-5">
-        
-        <!-- Big Checkmark Animation/Icon -->
-        <div class="mb-4">
-          <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow" style="width: 100px; height: 100px; font-size: 3.5rem;">
-            <i class="bi bi-check-lg"></i>
-          </div>
-        </div>
-        
-        <h2 class="fw-bold mb-3">Booking Confirmed!</h2>
-        <p class="text-muted fs-5 mb-4">
-          Your appointment with <strong>Dr. {{ booking.doctor.name }}</strong> has been successfully scheduled.
-        </p>
-
-        <!-- Booking summary box -->
-        <div class="bg-light rounded-4 p-4 mb-4 text-start">
-          <div class="d-flex justify-content-between mb-2">
-            <span class="text-secondary fw-semibold">Patient:</span>
-            <span class="fw-bold">{{ booking.patient_name }}</span>
-          </div>
-          <div class="d-flex justify-content-between mb-2">
-            <span class="text-secondary fw-semibold">Date & Time:</span>
-            <span class="fw-bold"><i class="bi bi-calendar-event me-1"></i>{{ booking.appointment_date.strftime('%d %b %Y') }} at {{ booking.appointment_time }}</span>
-          </div>
-          <div class="d-flex justify-content-between mb-0">
-            <span class="text-secondary fw-semibold">Hospital:</span>
-            <span class="fw-bold"><i class="bi bi-geo-alt me-1"></i>{{ booking.doctor.hospital }}</span>
-          </div>
-        </div>
-        
-        <p class="text-muted small mb-4">We have also sent a confirmation slip to your email address ({{ booking.patient_email }}).</p>
-
-        <!-- Action Buttons -->
-        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mt-2">
-          <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary btn-lg rounded-pill px-4">
-            <i class="bi bi-house-door me-2"></i>Go to Home
-          </a>
-          <a href="{{ url_for('booking.dashboard') }}" class="btn btn-primary btn-lg rounded-pill px-4 shadow-sm">
-            <i class="bi bi-journal-medical me-2"></i>Booking Dashboard
-          </a>
-        </div>
-        
-      </div>
+<main class="flex-grow flex items-center justify-center relative pt-32 pb-40 overflow-hidden px-6">
+    <!-- Decorative Background Elements -->
+    <div class="absolute inset-0 pointer-events-none z-0">
+        <div class="absolute top-[20%] right-[10%] w-[400px] h-[400px] bg-vibrant-teal/10 rounded-full blur-[100px]"></div>
+        <div class="absolute bottom-[20%] left-[10%] w-[400px] h-[400px] bg-electric-blue/10 rounded-full blur-[100px]"></div>
     </div>
-  </div>
-</div>
+
+    <!-- Confirmation Container -->
+    <div class="w-full max-w-2xl relative z-10 text-center">
+        <!-- Big Status Indicator -->
+        <div class="mb-14 flex justify-center">
+            <div class="conf-circle bg-vibrant-teal/20 check-pop border-4 border-white/60">
+                <span class="material-symbols-outlined text-vibrant-teal text-6xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+            </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="conf-card rounded-[48px] p-12 md:p-16 shadow-2xl shadow-primary/5">
+            <div class="mb-12">
+                <span class="px-5 py-2 bg-vibrant-teal/15 text-on-tertiary-container font-extrabold text-[10px] uppercase tracking-[0.3em] rounded-full border border-vibrant-teal/20 font-syne mb-6 inline-block">Protocol Completed</span>
+                <h1 class="text-5xl md:text-6xl font-extrabold text-primary font-syne tracking-tighter leading-tight mb-4">Appointment<br/><span class="text-vibrant-teal">Confirmed!</span></h1>
+                <p class="text-on-surface-variant font-medium text-lg">Your clinical encounter with <strong class="text-primary">Dr. {{ booking.doctor.name }}</strong> has been officially encrypted and scheduled into the network protocol.</p>
+            </div>
+
+            <!-- Detailed Summary Container -->
+            <div class="bg-atmospheric-grey/60 border border-atmospheric-grey rounded-3xl p-10 space-y-10 text-left mb-12">
+                <h4 class="text-[10px] font-extrabold text-primary/40 uppercase tracking-[0.4em] font-syne border-b border-primary/5 pb-6">Clinical Audit Record</h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-extrabold text-primary/30 uppercase tracking-widest">Patient Identity</p>
+                        <p class="text-base font-bold text-primary">{{ booking.patient_name }}</p>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-extrabold text-primary/30 uppercase tracking-widest">Clinical Authority</p>
+                        <p class="text-base font-bold text-primary">{{ booking.doctor.name }} ({{ booking.doctor.specialty }})</p>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-extrabold text-primary/30 uppercase tracking-widest">Temporal Log</p>
+                        <p class="text-base font-bold text-primary">{{ booking.appointment_date.strftime('%d %b %Y') }} @ {{ booking.appointment_time }}</p>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-extrabold text-primary/30 uppercase tracking-widest">Station / Facility</p>
+                        <p class="text-base font-bold text-primary">{{ booking.doctor.hospital }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-on-surface-variant font-medium text-xs mb-14 px-6 border-l-4 border-vibrant-teal/30 py-2 inline-block">
+                A secure confirmation packet has been dispatched to <strong class="text-primary">{{ booking.patient_email }}</strong> for your clinical records.
+            </p>
+
+            <!-- Final Actions -->
+            <div class="flex flex-col md:flex-row gap-6 justify-center">
+                <a href="{{ url_for('booking.dashboard') }}" class="px-10 py-5 bg-primary text-white rounded-2xl font-extrabold font-syne text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3">
+                    <span class="material-symbols-outlined text-xl">clinical_notes</span>
+                    My Records
+                </a>
+                <a href="{{ url_for('main.index') }}" class="px-10 py-5 bg-white border-2 border-atmospheric-grey text-primary rounded-2xl font-extrabold font-syne text-xs uppercase tracking-widest hover:border-electric-blue transition-all flex items-center justify-center gap-3">
+                    <span class="material-symbols-outlined text-xl">home_app_logo</span>
+                    Home Station
+                </a>
+            </div>
+        </div>
+
+        <!-- Final Security Text -->
+        <div class="mt-14 space-y-4 opacity-40">
+            <div class="flex justify-center gap-2 items-center text-[10px] font-bold text-primary uppercase tracking-[0.2em]">
+                <span class="material-symbols-outlined text-[14px]">verified_user</span>
+                Double-Layer Encryption Active
+            </div>
+            <p class="text-[9px] font-bold text-primary/60 uppercase tracking-[0.1em]">Session ID: {{ (booking.id|string)[:8]|upper if booking.id else 'PROTO-AUTH-001' }}</p>
+        </div>
+    </div>
+</main>
 {% endblock %}

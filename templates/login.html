@@ -1,58 +1,155 @@
 {% extends "base.html" %}
+
 {% block title %}Sign In{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pulse-line {
+        background-image: linear-gradient(90deg, transparent 0%, rgba(113, 216, 199, 0.1) 50%, transparent 100%);
+        height: 1px;
+        width: 100%;
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 20px 80px -20px rgba(0, 18, 56, 0.08);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="auth-page d-flex align-items-center justify-content-center py-5">
-  <div class="auth-card shadow-lg rounded-4 p-4 p-md-5">
-    <div class="text-center mb-4">
-      <div class="auth-icon mx-auto mb-3"><i class="bi bi-heart-pulse-fill text-white"></i></div>
-      <h3 class="fw-bold">Welcome Back</h3>
-      <p class="text-muted small">Sign in to manage your appointments</p>
+<main class="flex-grow flex items-center justify-center relative pt-32 pb-24 overflow-hidden">
+    <!-- Architectural Background Elements -->
+    <div class="absolute inset-0 z-0 pointer-events-none">
+        <div class="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-primary-container/10 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-tertiary-fixed-dim/20 rounded-full blur-[120px]"></div>
+        
+        <!-- Pulse Motif -->
+        <div class="absolute top-1/2 left-0 w-full opacity-20 flex flex-col gap-32">
+            <div class="pulse-line"></div>
+            <div class="pulse-line" style="margin-left: 200px"></div>
+        </div>
     </div>
 
-    <form method="POST" novalidate>
-      {{ form.hidden_tag() }}
+    <!-- Login Container -->
+    <div class="w-full max-w-xl px-6 relative z-10">
+        <!-- Glassmorphic Card -->
+        <div class="glass-card border border-white/40 rounded-[32px] p-8 md:p-12">
+            <!-- Welcome Header -->
+            <div class="mb-12 text-center md:text-left">
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-tertiary-fixed-dim/20 rounded-full text-on-tertiary-container text-[10px] font-bold uppercase tracking-widest mb-4">
+                    <span class="material-symbols-outlined text-[14px]">shield_lock</span>
+                    Secure Access
+                </div>
+                <h1 class="text-5xl md:text-6xl font-extrabold font-syne text-primary tracking-tighter leading-tight mb-4">Welcome Back</h1>
+                <p class="text-on-surface-variant font-medium text-lg">Access your secure clinical workspace.</p>
+            </div>
 
-      <div class="mb-3">
-        {{ form.email.label(class="form-label fw-semibold small") }}
-        {{ form.email(class="form-control form-control-lg rounded-3" + (" is-invalid" if form.email.errors else ""), placeholder="you@email.com") }}
-        {% for e in form.email.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-      </div>
+            <!-- Login Form -->
+            <form method="POST" class="space-y-8" novalidate>
+                {{ form.hidden_tag() }}
+                
+                <!-- Email Input Group -->
+                <div class="space-y-3">
+                    <label class="text-xs font-bold uppercase tracking-widest text-primary/60 ml-1">{{ form.email.label.text }}</label>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-electric-blue transition-colors">mail</span>
+                        {{ form.email(class="w-full h-14 pl-12 pr-4 bg-surface-container-high/40 border-none rounded-xl focus:ring-2 focus:ring-electric-blue focus:bg-white transition-all placeholder:text-outline-variant outline-none" + (" ring-2 ring-error/20" if form.email.errors else ""), placeholder="dr.smith@clinicalcouture.com") }}
+                    </div>
+                    {% for e in form.email.errors %}<p class="text-error text-[10px] font-bold uppercase tracking-wider ml-1 mt-1">{{ e }}</p>{% endfor %}
+                </div>
 
-      <div class="mb-3">
-        {{ form.password.label(class="form-label fw-semibold small") }}
-        <div class="position-relative">
-          {{ form.password(class="form-control form-control-lg rounded-3" + (" is-invalid" if form.password.errors else ""), placeholder="••••••••", id="passwordField") }}
-          <button type="button" class="btn btn-sm position-absolute end-0 top-50 translate-middle-y me-2 border-0 bg-transparent text-muted" onclick="togglePwd('passwordField', this)">
-            <i class="bi bi-eye"></i>
-          </button>
-          {% for e in form.password.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+                <!-- Password Input Group -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center px-1">
+                        <label class="text-xs font-bold uppercase tracking-widest text-primary/60">{{ form.password.label.text }}</label>
+                        <a class="text-[10px] font-bold text-electric-blue hover:underline decoration-2 underline-offset-4 uppercase tracking-widest" href="#">Forgot?</a>
+                    </div>
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-electric-blue transition-colors">lock</span>
+                        {{ form.password(class="w-full h-14 pl-12 pr-14 bg-surface-container-high/40 border-none rounded-xl focus:ring-2 focus:ring-electric-blue focus:bg-white transition-all placeholder:text-outline-variant outline-none" + (" ring-2 ring-error/20" if form.password.errors else ""), placeholder="••••••••••••", id="passwordField") }}
+                        <button type="button" class="absolute right-4 top-1/2 -translate-y-1/2 text-primary/40 hover:text-electric-blue transition-colors" onclick="togglePwd('passwordField', this)">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                    </div>
+                    {% for e in form.password.errors %}<p class="text-error text-[10px] font-bold uppercase tracking-wider ml-1 mt-1">{{ e }}</p>{% endfor %}
+                </div>
+
+                <!-- Remember Me -->
+                <div class="flex items-center gap-2 px-1">
+                    {{ form.remember(class="w-4 h-4 rounded border-atmospheric-grey text-electric-blue focus:ring-electric-blue/20 cursor-pointer") }}
+                    <label class="text-xs font-bold text-primary/60 tracking-tight cursor-pointer" for="{{ form.remember.id }}">{{ form.remember.label.text }}</label>
+                </div>
+
+                <!-- Submit Action -->
+                <div class="pt-2">
+                    <button type="submit" class="w-full h-16 bg-gradient-to-br from-primary to-primary-container text-white rounded-2xl font-extrabold font-syne text-lg shadow-xl shadow-primary/20 hover:scale-[0.98] active:scale-95 transition-all duration-300 flex items-center justify-center gap-3">
+                        Sign In
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Alternate Login Options -->
+            <div class="mt-10 pt-10 border-t border-primary/5">
+                <div class="flex items-center gap-4 text-slate-300 mb-8">
+                    <div class="h-px flex-grow bg-slate-200"></div>
+                    <span class="text-[9px] font-bold uppercase tracking-widest">Enterprise Bridge</span>
+                    <div class="h-px flex-grow bg-slate-200"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="flex items-center justify-center gap-3 h-14 bg-white rounded-xl border border-outline-variant/20 text-on-surface font-bold text-xs hover:bg-surface-container-low transition-colors uppercase tracking-widest shadow-sm">
+                        <img alt="Google" class="w-4 h-4" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHlOtEI4O0bH9Gm64DAIV8LyMS5lICM3YeJyBR71145-tCuRErcRU-1tNeO090DFpWJP2CB_b2g_eAauexlKf9PQ2qAV6tYR8yuVXMUw6ly_4IxBRtjACQ0Hj4EUkxVompLqXOts0iAl1rXEfAJn0gLucbKMR5QLaPaWj5gEH1-84Lo4VT-KZe518ly0g1hvhXnnwEQzZ7uJ0kY_3kQfwmn2zi1XIryKZPyE3TIuptlA7C8-cDAg-Xe_ulrXPSk9Xc0ICDlkvyXhot"/>
+                        Google
+                    </button>
+                    <button class="flex items-center justify-center gap-3 h-14 bg-white rounded-xl border border-outline-variant/20 text-on-surface font-bold text-xs hover:bg-surface-container-low transition-colors uppercase tracking-widest shadow-sm">
+                        <span class="material-symbols-outlined text-electric-blue text-lg">shield_person</span>
+                        SSO
+                    </button>
+                </div>
+            </div>
+
+            <!-- Footer Link -->
+            <div class="mt-12 text-center border-t border-primary/5 pt-8">
+                <p class="text-on-surface-variant font-medium text-sm">
+                    New to Clinical Couture? 
+                    <a class="text-electric-blue font-bold hover:underline decoration-2 underline-offset-4 ml-1 transition-all" href="{{ url_for('auth.register') }}">Create account</a>
+                </p>
+            </div>
         </div>
-      </div>
 
-      <div class="mb-4 d-flex align-items-center justify-content-between">
-        <div class="form-check">
-          {{ form.remember(class="form-check-input") }}
-          {{ form.remember.label(class="form-check-label small") }}
+        <!-- Branding Bottom Text -->
+        <div class="mt-12 flex justify-center items-center gap-4 text-[9px] font-bold text-primary/30 uppercase tracking-[0.25em]">
+            <span>HIPAA Compliant</span>
+            <span class="w-1 h-1 rounded-full bg-vibrant-teal/30"></span>
+            <span>Military-Grade Encryption</span>
         </div>
-      </div>
+    </div>
 
-      {{ form.submit(class="btn btn-primary btn-lg w-100 rounded-3 fw-semibold") }}
-    </form>
-
-    <p class="text-center mt-4 mb-0 text-muted small">
-      Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-primary fw-semibold">Create one</a>
-    </p>
-  </div>
-</div>
+    <!-- Decorative Floating Element -->
+    <div class="absolute bottom-12 right-12 hidden xl:block">
+        <div class="glass-card p-8 rounded-3xl border border-white/50 flex items-start gap-5 max-w-sm transform rotate-2">
+            <div class="w-14 h-14 rounded-2xl bg-electric-blue/10 flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-electric-blue text-3xl">verified_user</span>
+            </div>
+            <div>
+                <h4 class="font-extrabold text-primary font-syne text-base tracking-tight mb-2">Clinical Assurance</h4>
+                <p class="text-xs leading-relaxed text-on-surface-variant font-medium">Your data is protected by Clinical Couture's proprietary encryption layer and multi-tenant isolation protocols.</p>
+            </div>
+        </div>
+    </div>
+</main>
 {% endblock %}
 
 {% block scripts %}
 <script>
 function togglePwd(id, btn) {
-  const f = document.getElementById(id);
-  const show = f.type === 'password';
-  f.type = show ? 'text' : 'password';
-  btn.innerHTML = show ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+    const field = document.getElementById(id);
+    const icon = btn.querySelector('.material-symbols-outlined');
+    const isVisible = field.type === 'text';
+    field.type = isVisible ? 'password' : 'text';
+    icon.textContent = isVisible ? 'visibility' : 'visibility_off';
 }
 </script>
 {% endblock %}

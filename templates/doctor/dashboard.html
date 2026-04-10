@@ -1,90 +1,161 @@
 {% extends "base.html" %}
-{% block title %}Doctor Dashboard{% endblock %}
+{% block title %}Clinical Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bento-card { background: white; border: 1px solid #eceef0; border-radius: 2rem; padding: 2.5rem; transition: all 0.3s ease; }
+    .bento-card:hover { border-color: #00A3FF; box-shadow: 0 20px 40px -20px rgba(0, 163, 255, 0.1); }
+    .stat-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: #94a3b8; }
+    .stat-value { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2.5rem; color: #001238; line-height: 1; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-    <div>
-      <div class="section-badge mb-2">Portal</div>
-      <h2 class="section-title mb-0">Welcome, {{ current_user.doctor_profile.name }}</h2>
-    </div>
-  </div>
+<div class="space-y-12">
 
-  <div class="row g-3 mb-4">
-    {% for stat_name, stat_val, stat_icon, text_color in [
-        ('Upcoming', stats.upcoming, 'bi-calendar-event', 'primary'),
-        ('Completed', stats.completed, 'bi-check-all', 'success'),
-        ('Cancelled', stats.cancelled, 'bi-x-circle', 'danger'),
-    ] %}
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm rounded-4 p-3 d-flex flex-row align-items-center gap-3">
-        <div class="fs-1 text-{{ text_color }}"><i class="bi {{ stat_icon }}"></i></div>
-        <div>
-          <div class="fw-bold fs-4">{{ stat_val }}</div>
-          <div class="text-muted small">{{ stat_name }}</div>
+    <!-- Welcome Banner -->
+    <div class="glass-ui p-10 rounded-[40px] border-none shadow-xl shadow-primary/5 bg-white overflow-hidden relative">
+        <div class="absolute top-0 right-0 w-56 h-56 bg-electric-blue/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+        <div class="flex flex-col md:flex-row items-center gap-10 relative z-10">
+            <div class="w-24 h-24 rounded-[28px] overflow-hidden border-4 border-slate-50 shadow-lg flex-shrink-0">
+                <img src="https://ui-avatars.com/api/?name={{ current_user.name }}&background=001238&color=fff&size=96" alt="Profile" class="w-full h-full object-cover"/>
+            </div>
+            <div class="flex-grow space-y-3 text-center md:text-left">
+                <p class="text-[10px] font-extrabold text-electric-blue uppercase tracking-[0.4em] font-syne">Clinical Identity</p>
+                <h1 class="text-4xl font-extrabold font-syne text-primary tracking-tighter">{{ current_user.name }}</h1>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    {% if current_user.doctor_profile %}{{ current_user.doctor_profile.specialty }} &bull; {{ current_user.doctor_profile.hospital }}{% endif %}
+                </p>
+            </div>
+            <a href="{{ url_for('doctor.appointments') }}" class="px-8 py-4 bg-primary text-white rounded-2xl font-extrabold text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-3">
+                <span class="material-symbols-outlined text-lg">calendar_month</span> All Appointments
+            </a>
         </div>
-      </div>
     </div>
-    {% endfor %}
-  </div>
 
-  <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-header bg-transparent border-0 pt-4 pb-2">
-      <h5 class="fw-bold"><i class="bi bi-list-check me-2 text-primary"></i>Your Patient Queue</h5>
+    <!-- Tier 1: Clinical Performance Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        {% for label, val, color, icon in [
+            ('Pending Encounters', stats.upcoming, 'electric-blue', 'calendar_today'),
+            ('Throughput Success', stats.completed, 'vibrant-teal', 'cloud_done'),
+            ('Total Patients', stats.total, 'primary', 'group'),
+            ('Abort Protocols', stats.cancelled, 'error', 'cancel')
+        ] %}
+        <div class="bento-card group border-b-4 border-{{ color }}">
+            <div class="flex justify-between items-start mb-6">
+                <p class="stat-label">{{ label }}</p>
+                <span class="material-symbols-outlined text-{{ color }} opacity-50 group-hover:opacity-100 transition-opacity">{{ icon }}</span>
+            </div>
+            <h3 class="stat-value tracking-tighter">{{ val }}</h3>
+        </div>
+        {% endfor %}
     </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th class="ps-4 small fw-semibold text-muted">Time</th>
-              <th class="small fw-semibold text-muted">Patient Info</th>
-              <th class="small fw-semibold text-muted">Reason / Notes</th>
-              <th class="small fw-semibold text-muted">Status</th>
-              <th class="small fw-semibold text-muted text-end pe-4">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for b in bookings %}
-            <tr class="{{ 'opacity-50 bg-light' if b.status != 'confirmed' else '' }}">
-              <td class="ps-4">
-                <div class="fw-bold text-primary">{{ b.appointment_time }}</div>
-                <div class="small text-muted">{{ b.appointment_date.strftime('%d %b %Y') }}</div>
-              </td>
-              <td>
-                <div class="fw-semibold">{{ b.patient_name }}</div>
-                <div class="small text-muted"><i class="bi bi-telephone me-1"></i>{{ b.patient_phone }}</div>
-                <div class="small text-muted"><i class="bi bi-envelope me-1"></i>{{ b.patient_email }}</div>
-              </td>
-              <td class="small w-25 text-muted">{{ b.reason or 'No reason provided.' }}</td>
-              <td>
-                <span class="badge rounded-pill {{ 'bg-success' if b.status == 'completed' else 'bg-primary' if b.status == 'confirmed' else 'bg-secondary' }}">
-                  {{ b.status|capitalize }}
-                </span>
-              </td>
-              <td class="text-end pe-4">
-                {% if b.status == 'confirmed' %}
-                <form action="{{ url_for('doctor.update_status', booking_id=b.id) }}" method="POST" class="d-inline">
-                  {{ csrf_token() if csrf_token is defined }}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  <input type="hidden" name="status" value="completed">
-                  <button type="submit" class="btn btn-sm btn-success rounded-3 me-1" title="Mark Completed"><i class="bi bi-check-lg"></i></button>
-                </form>
-                <form action="{{ url_for('doctor.update_status', booking_id=b.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Cancel this appointment?');">
-                  {{ csrf_token() if csrf_token is defined }}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                  <input type="hidden" name="status" value="cancelled">
-                  <button type="submit" class="btn btn-sm btn-outline-danger rounded-3" title="Cancel Appointment"><i class="bi bi-x-lg"></i></button>
-                </form>
-                {% else %}
-                <span class="small text-muted">N/A</span>
-                {% endif %}
-              </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="5" class="text-center py-5 text-muted">No appointments scheduled.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+
+    <!-- Tier 2: Full-width Patient Rotation -->
+    <div class="bento-card bg-white space-y-10">
+        <div class="flex justify-between items-center">
+            <div class="space-y-1">
+                <h4 class="text-xl font-extrabold font-syne tracking-tight">Active Patient Rotation</h4>
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Recent appointments — mark complete or cancel</p>
+            </div>
+            <a href="{{ url_for('doctor.appointments') }}" class="px-6 py-2 bg-slate-50 rounded-xl text-[9px] font-extrabold uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
+                View All
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="border-b border-slate-50">
+                    <tr>
+                        <th class="pb-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Date &amp; Time</th>
+                        <th class="pb-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Patient</th>
+                        <th class="pb-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Reason</th>
+                        <th class="pb-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Status</th>
+                        <th class="pb-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for b in bookings[:8] %}
+                    <tr class="group hover:bg-slate-50 transition-colors {% if b.status != 'confirmed' %}opacity-50{% endif %}">
+                        <td class="py-6">
+                            <p class="text-xs font-extrabold text-primary">{{ b.appointment_time }}</p>
+                            <p class="text-[9px] font-bold text-slate-300">{{ b.appointment_date.strftime('%d %b %Y') }}</p>
+                        </td>
+                        <td class="py-6">
+                            <p class="text-sm font-bold">{{ b.patient_name }}</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ b.patient_phone }}</p>
+                        </td>
+                        <td class="py-6">
+                            <p class="text-[10px] font-medium text-slate-500 max-w-[200px] truncate">{{ b.reason or '—' }}</p>
+                        </td>
+                        <td class="py-6">
+                            <span class="px-3 py-1.5 rounded-xl text-[8px] font-extrabold uppercase tracking-widest 
+                                {% if b.status == 'confirmed' %}bg-electric-blue/10 text-electric-blue
+                                {% elif b.status == 'completed' %}bg-vibrant-teal/10 text-vibrant-teal
+                                {% else %}bg-slate-100 text-slate-400{% endif %}">
+                                {{ b.status }}
+                            </span>
+                        </td>
+                        <td class="py-6 text-right">
+                            {% if b.status == 'confirmed' %}
+                            <div class="flex justify-end gap-2">
+                                <form action="{{ url_for('doctor.update_status', booking_id=b.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="status" value="completed">
+                                    <button type="submit" title="Mark Complete" class="w-8 h-8 rounded-lg bg-vibrant-teal text-white flex items-center justify-center shadow-lg shadow-vibrant-teal/20 transition-all hover:scale-110">
+                                        <span class="material-symbols-outlined text-sm">done</span>
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('doctor.update_status', booking_id=b.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="status" value="cancelled">
+                                    <button type="submit" title="Cancel Appointment" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center transition-all hover:text-error hover:bg-error/10">
+                                        <span class="material-symbols-outlined text-sm">close</span>
+                                    </button>
+                                </form>
+                            </div>
+                            {% else %}
+                            <span class="material-symbols-outlined text-slate-200 text-sm">lock</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="py-20 text-center">
+                            <div class="flex flex-col items-center gap-4">
+                                <span class="material-symbols-outlined text-5xl text-slate-200">event_available</span>
+                                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">No appointments in rotation yet</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-  </div>
+
+    <!-- Tier 3: Unread Messages Teaser -->
+    <div class="bento-card bg-primary text-white flex items-center justify-between p-10">
+        <div class="flex items-center gap-8">
+            <div class="w-16 h-16 rounded-3xl bg-white/10 flex items-center justify-center">
+                <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+            </div>
+            <div class="space-y-2">
+                <p class="text-[10px] font-extrabold uppercase tracking-[0.4em] opacity-50">Clinical Comms</p>
+                <p class="text-2xl font-extrabold font-syne tracking-tight">
+                    {% if stats.messages > 0 %}
+                        {{ stats.messages }} Patient Message{{ 's' if stats.messages != 1 else '' }}
+                    {% else %}
+                        Inbox Clear
+                    {% endif %}
+                </p>
+                <p class="text-[10px] font-bold opacity-40 uppercase tracking-widest">Encrypted professional channel</p>
+            </div>
+        </div>
+        <a href="{{ url_for('doctor.messages') }}" class="px-10 py-5 bg-white text-primary text-[10px] font-extrabold uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl">
+            Open Inbox
+        </a>
+    </div>
+
 </div>
 {% endblock %}

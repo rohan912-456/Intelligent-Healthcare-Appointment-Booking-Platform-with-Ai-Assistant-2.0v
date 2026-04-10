@@ -10,10 +10,14 @@ const resetBtn   = document.getElementById('resetChat');
 const chatToggle = document.getElementById('chatToggle');
 
 if (chatToggle) {
-  chatToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  chatToggle.addEventListener('click', () => {
+    sidebar.classList.add('sidebar-open');
+  });
 }
 if (closeBtn) {
-  closeBtn.addEventListener('click', () => sidebar.classList.remove('open'));
+  closeBtn.addEventListener('click', () => {
+    sidebar.classList.remove('sidebar-open');
+  });
 }
 
 // ── Escape text to prevent XSS ──────────────────────
@@ -117,11 +121,12 @@ if (resetBtn) {
   });
 }
 
-// ── Auto-dismiss alerts ───────────────────────────────
-document.querySelectorAll('.alert').forEach(alert => {
+// ── Auto-dismiss alerts (Vanilla JS) ──────────────────
+document.querySelectorAll('.flash-animation').forEach(alert => {
   setTimeout(() => {
-    const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-    if (bsAlert) bsAlert.close();
+    alert.style.opacity = '0';
+    alert.style.transition = 'opacity 0.5s ease-out';
+    setTimeout(() => alert.remove(), 500);
   }, 5000);
 });
 

@@ -54,5 +54,6 @@ class BookingForm(FlaskForm):
 class ContactForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired(), Length(2, 120)])
     email = StringField("Email", validators=[DataRequired(), Email()])
+    recipient = SelectField("Recipient", coerce=str, validators=[DataRequired()])
     message = TextAreaField("Message", validators=[DataRequired(), Length(10, 2000)])
     submit = SubmitField("Send Message")

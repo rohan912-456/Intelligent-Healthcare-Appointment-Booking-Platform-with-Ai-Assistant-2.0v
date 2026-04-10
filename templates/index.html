@@ -1,170 +1,307 @@
 {% extends "base.html" %}
-{% block title %}Home{% endblock %}
+
+{% block title %}Clinical Home{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-bg { 
+        background: 
+            radial-gradient(circle at 30% 30%, rgba(0, 163, 255, 0.1) 0%, transparent 60%),
+            radial-gradient(circle at 70% 80%, rgba(113, 216, 199, 0.08) 0%, transparent 60%),
+            url('data:image/svg+xml,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><path d="M0 40 L40 0 M20 40 L40 20 M0 20 L20 0" stroke="%2300A3FF" stroke-width="0.5" fill="none" opacity="0.05"/></svg>');
+    }
+    .welcome-glow { background: linear-gradient(90deg, rgba(0, 163, 255, 0.08) 0%, transparent 100%); border-left: 4px solid #00A3FF; }
+    .ticker-animate { animation: ticker 40s linear infinite; }
+    @keyframes ticker { 
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    .specialist-card:hover { border-color: #00A3FF; box-shadow: 0 0 24px rgba(0, 163, 255, 0.1); }
+
+    /* Welcome Back Card - Large & Prominent */
+    .welcome-back-card {
+        background: linear-gradient(135deg, #ffffff 0%, #eef6ff 100%);
+        border: 2px solid rgba(0, 163, 255, 0.25);
+        box-shadow: 0 24px 80px rgba(0, 163, 255, 0.15), 0 4px 20px rgba(0, 18, 56, 0.06);
+        border-radius: 28px;
+        padding: 40px 48px;
+        min-height: 200px;
+    }
+    .welcome-back-card .welcome-name { font-size: 2.5rem; }
+    .welcome-back-card .welcome-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 32px;
+        background: #001238;
+        color: white;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        border-radius: 16px;
+        transition: all 0.2s;
+        box-shadow: 0 10px 30px rgba(0,18,56,0.2);
+        white-space: nowrap;
+    }
+    .welcome-back-card .welcome-btn:hover { background: #00A3FF; transform: scale(1.04); }
+
+    /* Doctor card image - compact */
+    .doc-img { width: 100%; height: 80px; object-fit: cover; }
+
+    /* Facility Index 3x3 grid */
+    .facility-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+    @media (max-width: 768px) {
+        .facility-grid { grid-template-columns: repeat(2, 1fr); }
+        .welcome-back-card { padding: 28px 24px; }
+    }
+    @media (max-width: 480px) {
+        .facility-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- ── Hero ──────────────────────────────────────────────── -->
-<section class="hero-section">
-  <div class="hero-bg-shapes">
-    <div class="shape shape-1"></div>
-    <div class="shape shape-2"></div>
-    <div class="shape shape-3"></div>
-  </div>
-  <div class="container position-relative">
-    <div class="row align-items-center min-vh-70 py-5">
-      <div class="col-lg-7 text-white">
-        <div class="hero-badge mb-3"><i class="bi bi-shield-check me-2"></i>Trusted by 10,000+ patients in Nagpur</div>
-        <h1 class="hero-title">Your Health, <br><span class="text-gradient-warm">Our Priority</span></h1>
-        <p class="hero-subtitle">Book appointments with top specialists across Nagpur's leading hospitals — fast, easy, and secure.</p>
-        <div class="d-flex flex-wrap gap-3 mt-4">
-          <a href="{{ url_for('booking.book') }}" class="btn btn-hero-primary btn-lg px-4">
-            <i class="bi bi-calendar-plus me-2"></i>Book Appointment
-          </a>
-          <a href="#doctors" class="btn btn-hero-outline btn-lg px-4">
-            <i class="bi bi-search me-2"></i>Find Doctors
-          </a>
-        </div>
-        <div class="hero-stats mt-5 d-flex flex-wrap gap-4">
-          <div class="hero-stat"><div class="stat-num">{{ doctors|length }}+</div><div class="stat-label">Specialists</div></div>
-          <div class="hero-stat"><div class="stat-num">5</div><div class="stat-label">Hospitals</div></div>
-          <div class="hero-stat"><div class="stat-num">24/7</div><div class="stat-label">AI Support</div></div>
-        </div>
-      </div>
-      <div class="col-lg-5 d-none d-lg-flex justify-content-center">
-        <div class="hero-card-float">
-          <div class="floating-card p-4">
-            <div class="d-flex align-items-center gap-3 mb-3">
-              <div class="doc-avatar-sm bg-primary"><i class="bi bi-person-fill text-white"></i></div>
-              <div>
-                <div class="fw-semibold" style="font-size:.9rem">Next Available</div>
-                <div class="text-muted" style="font-size:.8rem">Today, 10:00 AM</div>
-              </div>
-              <span class="badge bg-success ms-auto">Open</span>
+<!-- ── Hero Section ────────────────────────────────────────── -->
+<section class="relative px-12 py-24 md:py-40 max-w-7xl mx-auto hero-bg rounded-b-[4rem]">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+        <div class="space-y-12">
+            <span class="px-6 py-2 bg-vibrant-teal/15 text-on-tertiary-fixed font-extrabold text-[10px] uppercase tracking-[0.3em] rounded-full border border-vibrant-teal/20 font-syne">Nagpur's Healthcare Network</span>
+            
+            {% if current_user.is_authenticated %}
+            <!-- WELCOME BACK CARD — Large & Prominent -->
+            <div class="welcome-back-card animate-fade-in">
+                <div class="flex items-center gap-6 mb-6">
+                    <div class="w-24 h-24 rounded-2xl overflow-hidden border-4 border-electric-blue/30 shadow-xl flex-shrink-0">
+                        <img src="https://ui-avatars.com/api/?name={{ current_user.name }}&background=00A3FF&color=fff&size=200" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-grow">
+                        <div class="text-[10px] font-extrabold text-electric-blue uppercase tracking-[0.3em] mb-2">Authenticated Session Active</div>
+                        <div class="welcome-name font-extrabold text-primary font-syne tracking-tight leading-tight">Welcome back,<br/>{{ current_user.name.split(' ')[0] }}!</div>
+                        <div class="text-sm text-slate-500 mt-2 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-base text-slate-400">mail</span>
+                            {{ current_user.email }}
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-4 pt-5 border-t border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 bg-vibrant-teal rounded-full animate-pulse"></span>
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Session Active &bull; {{ current_user.role|capitalize }}</span>
+                    </div>
+                    <a href="{% if current_user.role == 'admin' %}{{ url_for('admin.dashboard') }}{% elif current_user.role == 'doctor' %}{{ url_for('doctor.dashboard') }}{% else %}{{ url_for('booking.dashboard') }}{% endif %}" 
+                       class="welcome-btn">
+                        <span class="material-symbols-outlined text-lg">dashboard</span>
+                        Go to Dashboard
+                    </a>
+                </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
-              <i class="bi bi-geo-alt text-primary"></i>
-              <span style="font-size:.82rem" class="text-muted">Orange City Hospital</span>
+            {% else %}
+            <div class="welcome-glow px-6 py-4 rounded-r-2xl">
+                <div class="text-2xl md:text-3xl font-bold text-on-surface-variant font-syne mb-1 tracking-tighter opacity-90">Welcome to MedApp,</div>
+                <div class="text-4xl md:text-6xl font-extrabold text-electric-blue font-syne tracking-tighter">Your Health Hub</div>
             </div>
-          </div>
+            {% endif %}
+            
+            <h1 class="text-6xl md:text-8xl font-extrabold text-primary font-syne leading-[0.85] tracking-tighter">Your Health,<br/><span class="text-electric-blue">Reimagined.</span></h1>
+            
+            <p class="text-xl text-on-surface-variant max-w-lg leading-relaxed font-medium">
+                Access Nagpur's premier medical specialists through Clinical Couture's unified platform. Precision scheduling, medical transparency, and world-class care at your fingertips.
+            </p>
+            
+            <div class="flex flex-wrap gap-6 pt-6">
+                <a href="{{ url_for('booking.book') }}" class="px-12 py-5 rounded-2xl bg-electric-blue text-white font-extrabold tracking-tight shadow-[0_20px_80px_-20px_rgba(0,163,255,0.15)] hover:scale-105 active:scale-95 transition-all text-center">Book Now</a>
+                <a href="#doctors" class="px-12 py-5 rounded-2xl border-2 border-electric-blue/20 text-primary font-extrabold tracking-tight hover:bg-white hover:border-electric-blue transition-all text-center">Explore Doctors</a>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ── Doctors ────────────────────────────────────────────── -->
-<section id="doctors" class="py-5 bg-light-subtle">
-  <div class="container">
-    <div class="section-header text-center mb-5">
-      <div class="section-badge">Our Specialists</div>
-      <h2 class="section-title">Meet Our Doctors</h2>
-      <p class="text-muted">Expert care across multiple specialties at top Nagpur hospitals</p>
+        
+        <!-- Right side: decorative glow only -->
+        <div class="relative hidden lg:flex items-center justify-center">
+            <div class="absolute -top-20 -left-20 w-80 h-80 bg-vibrant-teal/10 blur-[120px] rounded-full"></div>
+            <div class="absolute -bottom-20 -right-20 w-80 h-80 bg-electric-blue/8 blur-[120px] rounded-full"></div>
+            <div class="relative flex flex-col items-center justify-center text-center gap-10">
+                <div class="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-electric-blue to-primary flex items-center justify-center shadow-2xl shadow-electric-blue/30">
+                    <span class="material-symbols-outlined text-white" style="font-size:64px; font-variation-settings: 'FILL' 1;">medical_services</span>
+                </div>
+                <div class="glass-ui px-10 py-6 rounded-2xl shadow-xl">
+                    <div class="text-6xl font-extrabold text-primary font-syne">{{ doctors|length }}+</div>
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-[0.3em] mt-2">Clinical Specialists</div>
+                    <div class="flex items-center justify-center gap-2 mt-3">
+                        <span class="w-2.5 h-2.5 bg-vibrant-teal rounded-full animate-pulse"></span>
+                        <span class="text-[10px] font-extrabold text-vibrant-teal uppercase tracking-widest">Live Network</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
-    <!-- Live Search Filter -->
-    <div class="row justify-content-center mb-5">
-      <div class="col-md-6 col-lg-5">
-        <div class="position-relative shadow-sm rounded-pill">
-          <input type="text" id="doctorSearch" class="form-control form-control-lg rounded-pill ps-5 border-0 bg-white" placeholder="Search by name or specialty...">
-          <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-muted"></i>
+    <!-- News Ticker -->
+    <div class="absolute bottom-0 left-0 w-full overflow-hidden glass-ui border-t border-atmospheric-grey py-5 mt-20">
+        <div class="flex ticker-animate whitespace-nowrap gap-16 items-center">
+            <div class="flex items-center gap-4 text-[10px] font-extrabold text-primary uppercase tracking-[0.3em] font-syne"><span class="w-2 h-2 bg-vibrant-teal rounded-full"></span> Latest Medical Insights: AI-driven diagnostics reaching 99% accuracy in Nagpur clinics</div>
+            <div class="flex items-center gap-4 text-[10px] font-extrabold text-primary uppercase tracking-[0.3em] font-syne"><span class="w-2 h-2 bg-electric-blue rounded-full"></span> Health News: 5 new specialized cardiac centers joined our network this week</div>
+            <div class="flex items-center gap-4 text-[10px] font-extrabold text-primary uppercase tracking-[0.3em] font-syne"><span class="w-2 h-2 bg-vibrant-teal rounded-full"></span> Update: Telehealth consultation wait times reduced by 15%</div>
+            <!-- Duplicated for seamless loop -->
+            <div class="flex items-center gap-4 text-[10px] font-extrabold text-primary uppercase tracking-[0.3em] font-syne"><span class="w-2 h-2 bg-vibrant-teal rounded-full"></span> Latest Medical Insights: AI-driven diagnostics reaching 99% accuracy in Nagpur clinics</div>
+            <div class="flex items-center gap-4 text-[10px] font-extrabold text-primary uppercase tracking-[0.3em] font-syne"><span class="w-2 h-2 bg-electric-blue rounded-full"></span> Health News: 5 new specialized cardiac centers joined our network this week</div>
         </div>
-      </div>
+    </div>
+</section>
+
+<!-- ── Specialists Section ──────────────────────────────── -->
+<section id="doctors" class="bg-white py-40 px-12">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-24">
+            <div class="space-y-6">
+                <h2 class="text-4xl md:text-7xl font-extrabold text-primary font-syne tracking-tighter">Meet Our Specialists</h2>
+                <p class="text-on-surface-variant max-w-md font-syne text-lg font-bold uppercase tracking-wider opacity-60">Expert care across Nagpur's premier medical facilities.</p>
+            </div>
+            
+            <div class="relative w-full md:w-96">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input type="text" id="doctorSearch" placeholder="Search by name or specialty..." 
+                    class="w-full pl-12 pr-4 py-4 bg-atmospheric-grey border-none rounded-2xl text-xs font-extrabold uppercase tracking-widest focus:ring-2 focus:ring-electric-blue transition-all outline-none"/>
+            </div>
+        </div>
+        
+        <!-- 5-column grid (5 per row) for doctors -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6" id="doctorsGrid">
+            {% for doc in doctors %}
+            <div class="group specialist-card doc-item bg-atmospheric-grey p-5 rounded-2xl transition-all duration-500 hover:-translate-y-2 border-2 border-transparent" 
+                 data-name="{{ doc.name|lower }}" data-specialty="{{ doc.specialty|lower }}">
+                <div class="relative mb-5 overflow-hidden rounded-xl">
+                    <img alt="{{ doc.name }}" class="doc-img transition-transform duration-700 group-hover:scale-110" 
+                         src="https://ui-avatars.com/api/?name={{ doc.name|replace(' ', '+') }}&background=00A3FF&color=fff&size=256"/>
+                    <div class="absolute top-3 right-3 bg-vibrant-teal text-white px-3 py-1 rounded-full text-[9px] font-extrabold shadow-lg uppercase tracking-widest font-syne">Active</div>
+                </div>
+                <h3 class="text-sm font-extrabold font-syne text-primary mb-1 tracking-tighter truncate">{{ doc.name }}</h3>
+                <p class="text-on-surface-variant text-[10px] mb-4 font-syne font-bold uppercase tracking-wider opacity-70 truncate">{{ doc.specialty }}</p>
+                <p class="text-[9px] text-slate-400 font-bold mb-4 truncate">{{ doc.hospital }}</p>
+                <a href="{{ url_for('booking.book') }}?doctor={{ doc.id }}" 
+                   class="inline-block w-full text-center py-3 rounded-xl bg-white border border-atmospheric-grey font-extrabold text-primary group-hover:bg-electric-blue group-hover:border-electric-blue group-hover:text-white transition-all shadow-sm uppercase text-[9px] tracking-widest">
+                    Book
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ── Health Map ────────────────────────────────────────── -->
+<section class="py-40 px-0">
+    <div class="px-12 max-w-7xl mx-auto mb-16 flex flex-col md:flex-row md:items-end justify-between gap-10">
+        <div>
+            <h2 class="text-4xl md:text-6xl font-extrabold text-primary font-syne mb-4 tracking-tighter">Interactive Health Map</h2>
+            <p class="text-on-surface-variant font-syne font-bold uppercase tracking-widest text-xs opacity-60">Locate top-rated clinics and hospitals across Nagpur.</p>
+        </div>
+        <div class="px-8 py-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-4">
+            <span class="w-3 h-3 rounded-full bg-vibrant-teal animate-pulse"></span>
+            <span class="text-[10px] font-extrabold uppercase tracking-widest text-primary">Live Institutional Feed</span>
+        </div>
     </div>
     
-    <div class="row g-4" id="doctorsGrid">
-      {% set specialty_icons = {
-        'Cardiologist': 'bi-heart-pulse',
-        'General Physician': 'bi-person-lines-fill',
-        'Orthopedic Surgeon': 'bi-bandaid',
-        'Neurologist': 'bi-activity',
-        'Pulmonologist': 'bi-lungs'
-      } %}
-      {% for doc in doctors %}
-      <div class="col-md-6 col-lg-4 doc-item" data-name="{{ doc.name|lower }}" data-specialty="{{ doc.specialty|lower }}">
-        <div class="doctor-card h-100">
-          <div class="doctor-card-top">
-            <div class="doc-avatar">
-              <i class="bi {{ specialty_icons.get(doc.specialty, 'bi-person-fill') }}"></i>
+    <!-- Map: in Card Format -->
+    <div class="px-12 max-w-7xl mx-auto mb-20">
+        <div class="glass-ui rounded-[40px] overflow-hidden border border-slate-100 shadow-2xl shadow-primary/5 relative">
+            <div class="relative h-[560px] bg-slate-200">
+                {% if maps_key and maps_key != 'YOUR_GOOGLE_MAPS_KEY_HERE' %}
+                <div id="map" class="absolute inset-0 w-full h-full grayscale opacity-80"></div>
+                {% else %}
+                <div class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 p-20 text-center">
+                    <div class="w-20 h-20 rounded-3xl bg-electric-blue/10 flex items-center justify-center mb-6">
+                        <span class="material-symbols-outlined text-electric-blue" style="font-size:40px;">location_on</span>
+                    </div>
+                    <h4 class="text-2xl font-extrabold text-primary font-syne mb-3">Nagpur Clinical Intel</h4>
+                    <p class="text-sm text-on-surface-variant font-medium max-w-sm mb-8">Add your Google Maps API key in the environmental settings to enable clinical geo-tracking.</p>
+                    <div class="flex gap-4">
+                        <div class="px-6 py-3 bg-white/50 backdrop-blur-md rounded-xl border border-white flex items-center gap-3">
+                            <span class="w-2 h-2 rounded-full bg-vibrant-teal animate-pulse"></span>
+                            <span class="text-[9px] font-extrabold uppercase tracking-widest text-primary">32 Fixed Units</span>
+                        </div>
+                        <div class="px-6 py-3 bg-white/50 backdrop-blur-md rounded-xl border border-white flex items-center gap-3">
+                            <span class="w-2 h-2 rounded-full bg-electric-blue"></span>
+                            <span class="text-[9px] font-extrabold uppercase tracking-widest text-primary">Live Traffic Map</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
-            <span class="doc-specialty-badge">{{ doc.specialty }}</span>
-          </div>
-          <div class="doctor-card-body">
-            <h5 class="doc-name">{{ doc.name }}</h5>
-            <p class="doc-hospital"><i class="bi bi-building me-1 text-primary"></i>{{ doc.hospital }}</p>
-            <div class="doc-meta d-flex gap-3 mb-3">
-              <span class="text-muted small"><i class="bi bi-star-fill text-warning me-1"></i>4.8</span>
-              <span class="text-muted small"><i class="bi bi-clock me-1"></i>Mon–Sat</span>
+            
+            <!-- Floating Map Legend -->
+            <div class="absolute bottom-10 left-10 right-10 flex justify-between items-end pointer-events-none">
+                <div class="p-6 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white flex flex-col gap-4 pointer-events-auto">
+                    <div class="flex items-center gap-3">
+                        <span class="w-2 h-2 rounded-full bg-vibrant-teal"></span>
+                        <span class="text-[9px] font-extrabold uppercase tracking-widest text-primary">Active Hospitals</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-2 h-2 rounded-full bg-electric-blue"></span>
+                        <span class="text-[9px] font-extrabold uppercase tracking-widest text-primary">Booking available</span>
+                    </div>
+                </div>
             </div>
-            <a href="{{ url_for('booking.book') }}?doctor={{ doc.id }}" class="btn btn-book w-100">
-              <i class="bi bi-calendar-check me-2"></i>Book Appointment
-            </a>
-          </div>
         </div>
-      </div>
-      {% endfor %}
     </div>
-  </div>
+
+    <!-- Facility Index — below map as 3x3 grid -->
+    <div class="px-12 max-w-7xl mx-auto">
+        <div class="flex items-center justify-between mb-10">
+            <h4 class="text-2xl font-extrabold text-primary font-syne tracking-tighter uppercase">Facility Index</h4>
+            <button class="px-8 py-4 text-xs font-extrabold text-white bg-electric-blue rounded-2xl hover:bg-primary transition-all shadow-xl shadow-electric-blue/20 font-syne tracking-[0.2em] uppercase">Recenter Map</button>
+        </div>
+        <div class="facility-grid grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% set hospitals = [] %}
+            {% for doc in doctors %}
+                {% if doc.hospital not in hospitals %}
+                    {% set _ = hospitals.append(doc.hospital) %}
+                    <div class="p-6 rounded-2xl glass-ui border-l-4 border-electric-blue shadow-lg shadow-electric-blue/5 hover:shadow-electric-blue/15 transition-all hover:-translate-y-1">
+                        <div class="w-10 h-10 rounded-xl bg-electric-blue/10 flex items-center justify-center mb-4">
+                            <span class="material-symbols-outlined text-electric-blue text-xl">local_hospital</span>
+                        </div>
+                        <h5 class="font-extrabold text-sm text-primary font-syne mb-1 tracking-tight">{{ doc.hospital }}</h5>
+                        <p class="text-[10px] text-on-surface-variant font-extrabold tracking-widest uppercase opacity-70">Nagpur, MH • Active</p>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
 </section>
 
-<!-- ── Map ───────────────────────────────────────────────── -->
-<section class="py-5">
-  <div class="container">
-    <div class="section-header text-center mb-4">
-      <div class="section-badge">Locations</div>
-      <h2 class="section-title">Find Us On The Map</h2>
-      <p class="text-muted">All hospitals conveniently located across Nagpur</p>
-    </div>
-    {% if maps_key and maps_key != 'YOUR_GOOGLE_MAPS_KEY_HERE' %}
-    <div id="map" class="medapp-map rounded-4 shadow"></div>
-    {% else %}
-    <div class="map-placeholder rounded-4 d-flex flex-column align-items-center justify-content-center shadow-sm">
-      <i class="bi bi-geo-alt-fill text-primary" style="font-size:3rem"></i>
-      <h5 class="mt-3 text-muted">Map Preview</h5>
-      <p class="text-muted text-center small mb-0">Add your <strong>GOOGLE_MAPS_KEY</strong> in <code>.env</code> to enable interactive maps.</p>
-    </div>
-    {% endif %}
-    <!-- Doctor list next to map -->
-    <div class="row mt-4 g-3">
-      {% for doc in doctors %}
-      <div class="col-md-6 col-lg-4">
-        <div class="map-list-card d-flex align-items-center gap-3 p-3 rounded-3 shadow-sm bg-white">
-          <div class="map-pin-num">{{ loop.index }}</div>
-          <div>
-            <div class="fw-semibold small">{{ doc.name }}</div>
-            <div class="text-muted" style="font-size:.78rem">{{ doc.hospital }}</div>
-          </div>
-          <a href="{{ url_for('booking.book') }}" class="btn btn-sm btn-outline-primary ms-auto">Book</a>
+<!-- ── The MedApp Experience (Card Format) ────────────────────── -->
+<section class="py-40 px-12 bg-white">
+    <div class="max-w-7xl mx-auto">
+        <div class="gradient-primary text-white rounded-[40px] overflow-hidden relative p-20 md:p-32 shadow-2xl shadow-primary/20">
+            <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-electric-blue/20 blur-[200px] opacity-40 rounded-full -mr-[400px] -mt-[400px]"></div>
+            
+            <div class="relative z-10">
+                <div class="text-center mb-24">
+                    <h2 class="text-5xl md:text-8xl font-extrabold font-syne tracking-tighter mb-8">Clinical Architecture</h2>
+                    <p class="text-primary-fixed-dim text-xl max-w-2xl mx-auto opacity-80 font-syne font-bold uppercase tracking-widest">Streamlined care delivery in four architectural steps.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-20">
+                    {% for step in [
+                        ('person_add', 'Secure Access', 'Protocol-driven patient onboarding with data encryption.'),
+                        ('search_check', 'Elite Matching', 'AI-assisted specialist selection tailored to your profile.'),
+                        ('event_upcoming', 'Live Booking', 'Real-time synchronization with clinical calendars.'),
+                        ('medical_services', 'Seamless Care', 'Premium consultation experience with digital audit trails.')
+                    ] %}
+                    <div class="relative group">
+                        <div class="w-24 h-24 rounded-3xl bg-white/10 backdrop-blur-xl flex items-center justify-center mb-10 group-hover:bg-vibrant-teal group-hover:text-primary transition-all duration-500 border border-white/10 shadow-2xl">
+                            <span class="material-symbols-outlined text-4xl">{{ step[0] }}</span>
+                        </div>
+                        <h4 class="text-2xl font-extrabold font-syne mb-5 tracking-tighter">{{ step[1] }}</h4>
+                        <p class="text-sm text-primary-fixed-dim leading-relaxed font-medium opacity-60">{{ step[2] }}</p>
+                        {% if not loop.last %}
+                        <div class="hidden md:block absolute top-12 left-full w-full h-[1px] border-t-2 border-dashed border-white/10 -z-10 ml-8"></div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
-      </div>
-      {% endfor %}
     </div>
-  </div>
-</section>
-
-<!-- ── How It Works ──────────────────────────────────────── -->
-<section class="py-5 bg-light-subtle">
-  <div class="container">
-    <div class="section-header text-center mb-5">
-      <div class="section-badge">Simple Process</div>
-      <h2 class="section-title">How It Works</h2>
-    </div>
-    <div class="row g-4 justify-content-center">
-      {% for step in [
-        ('1', 'bi-person-plus', 'Create Account', 'Sign up in seconds with your email and password.'),
-        ('2', 'bi-search-heart', 'Choose a Doctor', 'Browse specialists and pick the right one for you.'),
-        ('3', 'bi-calendar2-check', 'Book Instantly', 'Select your preferred date and time slot.'),
-        ('4', 'bi-envelope-check', 'Get Confirmed', 'Receive an email confirmation with all details.'),
-      ] %}
-      <div class="col-6 col-md-3">
-        <div class="step-card text-center p-4">
-          <div class="step-num">{{ step[0] }}</div>
-          <div class="step-icon mb-3"><i class="bi {{ step[1] }}"></i></div>
-          <h6 class="fw-bold">{{ step[2] }}</h6>
-          <p class="text-muted small mb-0">{{ step[3] }}</p>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
 </section>
 {% endblock %}
 
@@ -173,86 +310,52 @@
 <script>
 const DOCTORS = {{ doctors_json | tojson }};
 function initMap() {
-  const center = { lat: 21.1300, lng: 79.0650 };
-  const map = new google.maps.Map(document.getElementById("map"), {
-    zoom: 13, center,
-    styles: [
-      { featureType:"all", elementType:"geometry", stylers:[{color:"#f5f5f5"}] },
-      { featureType:"water", elementType:"geometry", stylers:[{color:"#c9d6f0"}] },
-      { featureType:"road", elementType:"geometry.stroke", stylers:[{color:"#ffffff"}] }
-    ]
-  });
-  DOCTORS.forEach((d, i) => {
-    const marker = new google.maps.Marker({
-      position: { lat: d.lat, lng: d.lng },
-      map,
-      title: d.name,
-      label: { text: String(i+1), color: "#fff" },
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        fillColor: "#0d6efd", fillOpacity: 1,
-        strokeColor: "#fff", strokeWeight: 2, scale: 14
-      }
+    const center = { lat: 21.1300, lng: 79.0650 };
+    const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 13, center,
+        disableDefaultUI: true,
+        styles: [
+            { "featureType": "all", "elementType": "labels.text.fill", "stylers": [{ "color": "#191c1e" }] },
+            { "featureType": "landscape", "elementType": "all", "stylers": [{ "color": "#f7f9fb" }] },
+            { "featureType": "road", "elementType": "all", "stylers": [{ "saturation": -100 }, { "lightness": 45 }] },
+            { "featureType": "water", "elementType": "all", "stylers": [{ "color": "#00A3FF" }, { "visibility": "on" }, { "opacity": 0.1 }] }
+        ]
     });
-    const info = new google.maps.InfoWindow({
-      content: `<div style="font-family:sans-serif;min-width:160px">
-        <strong>${d.name}</strong><br>
-        <small>${d.specialty}</small><br>
-        <small style="color:#666">${d.hospital}</small>
-        </div>`
+    DOCTORS.forEach((d, i) => {
+        new google.maps.Marker({
+            position: { lat: d.lat, lng: d.lng },
+            map, title: d.name,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                fillColor: "#00A3FF", fillOpacity: 1,
+                strokeColor: "#fff", strokeWeight: 3, scale: 10
+            }
+        });
     });
-    marker.addListener("click", () => info.open(map, marker));
-  });
 }
 </script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ maps_key }}&callback=initMap"></script>
 {% endif %}
 
 <script>
-  // Live Search for Doctors
-  document.addEventListener('DOMContentLoaded', function() {
+    // Live Search Logic
     const searchInput = document.getElementById('doctorSearch');
-    if(searchInput) {
-      searchInput.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        const docItems = document.querySelectorAll('.doc-item');
-        
-        docItems.forEach(function(item) {
-          const name = item.getAttribute('data-name');
-          const specialty = item.getAttribute('data-specialty');
-          
-          if(name.includes(query) || specialty.includes(query)) {
-            item.style.display = '';
-            // Add slight animation
-            item.animate([
-              { opacity: 0, transform: 'scale(0.95)' },
-              { opacity: 1, transform: 'scale(1)' }
-            ], { duration: 300, easing: 'ease-out' });
-          } else {
-            item.style.display = 'none';
-          }
+    const doctorCards = document.querySelectorAll('.doc-item');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            doctorCards.forEach(card => {
+                const name = card.getAttribute('data-name');
+                const specialty = card.getAttribute('data-specialty');
+                if (name.includes(query) || specialty.includes(query)) {
+                    card.style.display = 'block';
+                    card.classList.add('fade-in');
+                } else {
+                    card.style.display = 'none';
+                }
+            });
         });
-      });
     }
-
-    // Lazy Loading Tool (IntersectionObserver)
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = 1;
-          entry.target.style.transform = 'translateY(0)';
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1 });
-
-    const lazyItems = document.querySelectorAll('.doc-item');
-    lazyItems.forEach(item => {
-      item.style.opacity = 0;
-      item.style.transform = 'translateY(20px)';
-      item.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-      observer.observe(item);
-    });
-  });
 </script>
 {% endblock %}

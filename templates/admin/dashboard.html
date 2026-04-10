@@ -1,165 +1,203 @@
 {% extends "base.html" %}
-{% block title %}Admin Dashboard{% endblock %}
+
+{% block title %}System Command{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bento-card { background: white; border: 1px solid #eceef0; border-radius: 2rem; padding: 2.5rem; transition: all 0.3s ease; }
+    .bento-card:hover { border-color: #00A3FF; box-shadow: 0 20px 40px -20px rgba(0, 163, 255, 0.1); }
+    .stat-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: #94a3b8; }
+    .stat-value { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2.5rem; color: #001238; line-height: 1; }
+    .chart-container { position: relative; height: 350px; width: 100%; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4 px-4">
-  <div class="d-flex align-items-center gap-3 mb-4">
-    <div class="admin-badge-icon"><i class="bi bi-speedometer2 text-white"></i></div>
-    <div>
-      <h4 class="fw-bold mb-0">Admin Dashboard</h4>
-      <small class="text-muted">System overview and management</small>
-    </div>
-  </div>
-
-  <!-- Stats Row -->
-  <div class="row g-3 mb-4">
-    {% for item in [
-      ('Users', stats.users, 'bi-people-fill', 'primary'),
-      ('Doctors', stats.doctors, 'bi-person-badge-fill', 'info'),
-      ('Total Bookings', stats.bookings, 'bi-calendar-check-fill', 'success'),
-      ('Confirmed', stats.confirmed, 'bi-check-circle-fill', 'success'),
-      ('Cancelled', stats.cancelled, 'bi-x-circle-fill', 'danger'),
-      ('Messages', stats.messages, 'bi-envelope-fill', 'warning'),
-    ] %}
-    <div class="col-6 col-md-4 col-xl-2">
-      <div class="admin-stat-card rounded-4 p-3 bg-white shadow-sm text-center">
-        <div class="admin-stat-icon text-{{ item[3] }} mb-2"><i class="bi {{ item[2] }}"></i></div>
-        <div class="fw-bold fs-4">{{ item[1] }}</div>
-        <div class="text-muted small">{{ item[0] }}</div>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-
-  <!-- Chart.js Visualization Row -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card border-0 shadow-sm rounded-4 p-4">
-        <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart-fill me-2 text-info"></i>Booking Analytics</h6>
-        <div style="height: 300px; width: 100%;">
-          <canvas id="bookingsChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row g-4">
-    <!-- Recent Bookings -->
-    <div class="col-lg-8">
-      <div class="card border-0 shadow-sm rounded-4 h-100">
-        <div class="card-header bg-transparent border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
-          <h6 class="fw-bold mb-0"><i class="bi bi-calendar3 me-2 text-primary"></i>Recent Bookings</h6>
-          <a href="{{ url_for('admin.bookings') }}" class="btn btn-sm btn-outline-primary rounded-3">View All</a>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-              <thead class="table-light">
-                <tr>
-                  <th class="ps-4 small fw-semibold text-muted">#</th>
-                  <th class="small fw-semibold text-muted">Patient</th>
-                  <th class="small fw-semibold text-muted">Doctor</th>
-                  <th class="small fw-semibold text-muted">Date</th>
-                  <th class="small fw-semibold text-muted">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for b in recent_bookings %}
-                <tr>
-                  <td class="ps-4 text-muted small">{{ b.id }}</td>
-                  <td>
-                    <div class="fw-semibold small">{{ b.patient_name }}</div>
-                    <div class="text-muted" style="font-size:.73rem">{{ b.patient_email }}</div>
-                  </td>
-                  <td class="small">{{ b.doctor.name }}</td>
-                  <td class="small">{{ b.appointment_date.strftime('%d %b %Y') }} {{ b.appointment_time }}</td>
-                  <td>
-                    <span class="badge rounded-pill {{ 'bg-success' if b.status == 'confirmed' else 'bg-secondary' }}">
-                      {{ b.status }}
-                    </span>
-                  </td>
-                </tr>
-                {% else %}
-                <tr><td colspan="5" class="text-center text-muted py-4">No bookings yet</td></tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Messages -->
-    <div class="col-lg-4">
-      <div class="card border-0 shadow-sm rounded-4 h-100">
-        <div class="card-header bg-transparent border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
-          <h6 class="fw-bold mb-0"><i class="bi bi-envelope me-2 text-warning"></i>Recent Messages</h6>
-          <a href="{{ url_for('admin.messages') }}" class="btn btn-sm btn-outline-warning rounded-3">View All</a>
-        </div>
-        <div class="card-body">
-          {% for m in messages %}
-          <div class="admin-message-item p-3 rounded-3 mb-2 bg-light">
-            <div class="d-flex justify-content-between">
-              <span class="fw-semibold small">{{ m.name }}</span>
-              <span class="text-muted" style="font-size:.7rem">{{ m.created_at.strftime('%d %b') }}</span>
+<div class="space-y-12">
+    <!-- Tier 1: System Command Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {% for label, val, color, icon in [
+            ('System Units', stats.users, 'electric-blue', 'group'),
+            ('Medical Staff', stats.doctors, 'vibrant-teal', 'clinical_notes'),
+            ('Clinical Traffic', stats.bookings, 'primary', 'analytics'),
+            ('Inbound Comms', stats.messages, 'electric-blue', 'quick_reference_all')
+        ] %}
+        <div class="bento-card group border-b-4 border-{{ color }}">
+            <div class="flex justify-between items-start mb-6">
+                <p class="stat-label">{{ label }}</p>
+                <span class="material-symbols-outlined text-{{ color }} opacity-50 group-hover:opacity-100 transition-opacity">{{ icon }}</span>
             </div>
-            <div class="text-muted small text-truncate">{{ m.message }}</div>
-          </div>
-          {% else %}
-          <p class="text-muted small text-center py-3">No messages yet</p>
-          {% endfor %}
+            <h3 class="stat-value tracking-tighter">{{ val }}</h3>
         </div>
-      </div>
+        {% endfor %}
     </div>
-  </div>
 
-  <!-- Quick Nav -->
-  <div class="row g-3 mt-2">
-    {% for link in [
-      ('Manage Doctors', 'admin.doctors', 'bi-person-badge', 'primary'),
-      ('All Bookings', 'admin.bookings', 'bi-calendar3', 'success'),
-      ('All Users', 'admin.users', 'bi-people', 'info'),
-    ] %}
-    <div class="col-md-4">
-      <a href="{{ url_for(link[1]) }}" class="card border-0 shadow-sm rounded-4 text-decoration-none admin-quick-link p-3 d-flex flex-row align-items-center gap-3 bg-white">
-        <div class="admin-ql-icon text-{{ link[3] }}"><i class="bi {{ link[2] }} fs-4"></i></div>
-        <span class="fw-semibold text-dark">{{ link[0] }}</span>
-        <i class="bi bi-chevron-right ms-auto text-muted"></i>
-      </a>
+    <!-- Tier 2: Analytical Intelligence -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 text-primary">
+        <!-- Analytics Doughnut -->
+        <div class="lg:col-span-1 bento-card flex flex-col h-full bg-white">
+            <div class="flex justify-between items-center mb-12">
+                <h4 class="text-xl font-extrabold font-syne tracking-tight">Clinical Yield</h4>
+                <div class="flex gap-2">
+                    <span class="w-2 h-2 rounded-full bg-electric-blue"></span>
+                    <span class="w-2 h-2 rounded-full bg-vibrant-teal opacity-50"></span>
+                </div>
+            </div>
+            <div class="chart-container flex-grow flex items-center justify-center min-h-[300px]">
+                <canvas id="bookingsChart"></canvas>
+            </div>
+            <div class="mt-10 pt-10 border-t border-slate-50 flex justify-between">
+                <div>
+                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Growth</p>
+                    <p class="text-sm font-bold text-vibrant-teal">+12.4%</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Efficiency</p>
+                    <p class="text-sm font-bold">98.2%</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity Feed -->
+        <div class="lg:col-span-2 bento-card space-y-10 overflow-hidden bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <div class="space-y-2">
+                    <h4 class="text-xl font-extrabold font-syne tracking-tight">Recent Deployments</h4>
+                    <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Live Clinical Data Stream</p>
+                </div>
+                <a href="{{ url_for('admin.bookings') }}" class="px-6 py-2 bg-slate-50 rounded-xl text-[9px] font-extrabold uppercase tracking-widest hover:bg-primary hover:text-white transition-all">Audit All</a>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="border-b border-slate-50">
+                        <tr>
+                            <th class="pb-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Patient</th>
+                            <th class="pb-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Authority</th>
+                            <th class="pb-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Log</th>
+                            <th class="pb-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest text-right">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for b in recent_bookings %}
+                        <tr class="group hover:bg-slate-50/50 transition-colors">
+                            <td class="py-6">
+                                <p class="text-sm font-bold">{{ b.patient_name }}</p>
+                                <p class="text-[9px] font-bold text-slate-300">{{ b.patient_email }}</p>
+                            </td>
+                            <td class="py-6">
+                                <p class="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">{{ b.doctor.name }}</p>
+                            </td>
+                            <td class="py-6">
+                                <p class="text-[11px] font-bold">{{ b.appointment_date.strftime('%d.%m.%y') }}</p>
+                            </td>
+                            <td class="py-6 text-right">
+                                <span class="px-3 py-1.5 rounded-xl text-[8px] font-extrabold uppercase tracking-widest 
+                                    {% if b.status == 'confirmed' %}bg-electric-blue/10 text-electric-blue
+                                    {% elif b.status == 'cancelled' %}bg-error/10 text-error
+                                    {% else %}bg-slate-100 text-slate-400{% endif %}">
+                                    {{ b.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    {% endfor %}
-  </div>
+
+    <!-- Tier 3: Communication & Infrastructure -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        <!-- Message Pipeline -->
+        <div class="bento-card space-y-10 bg-white">
+            <div class="flex justify-between items-center">
+                <h4 class="text-xl font-extrabold font-syne tracking-tight">Contact Intelligence</h4>
+                <a href="{{ url_for('admin.messages') }}" class="text-[9px] font-extrabold uppercase tracking-widest text-electric-blue hover:underline">Manage Intel</a>
+            </div>
+            <div class="space-y-6">
+                {% for m in messages %}
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-electric-blue transition-all">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-primary">{{ m.name }}</span>
+                        <span class="text-[10px] font-bold text-slate-300">{{ m.created_at.strftime('%H:%M') }}</span>
+                    </div>
+                    <p class="text-xs font-bold text-slate-400 line-clamp-1 italic">"{{ m.message }}"</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- System Commands -->
+        <div class="bento-card bg-primary text-white">
+            <h4 class="text-xl font-extrabold font-syne tracking-tight mb-10">Deployment Hub</h4>
+            <div class="grid grid-cols-2 gap-6">
+                {% for label, route, icon in [
+                    ('Staffing', 'admin.doctors', 'clinical_notes'),
+                    ('Data Grid', 'admin.bookings', 'fact_check'),
+                    ('User Auth', 'admin.users', 'group'),
+                    ('Settings', 'admin.dashboard', 'settings_ethernet')
+                ] %}
+                <a href="{{ url_for(route) }}" class="p-6 bg-white/5 rounded-3xl border border-white/5 hover:bg-white hover:text-primary transition-all group">
+                    <span class="material-symbols-outlined mb-4 block opacity-50 group-hover:opacity-100">{{ icon }}</span>
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest">{{ label }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('bookingsChart');
-    if (ctx) {
-      new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Confirmed', 'Completed', 'Cancelled'],
-          datasets: [{
-            data: [{{ stats.confirmed }}, {{ stats.completed|default(0) }}, {{ stats.cancelled }}],
-            backgroundColor: [
-              'rgba(13, 110, 253, 0.8)',
-              'rgba(40, 167, 69, 0.8)',
-              'rgba(220, 53, 69, 0.8)'
-            ],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom' }
-          },
-          cutout: '70%'
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('bookingsChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Confirmed', 'Completed', 'Aborted'],
+                    datasets: [{
+                        data: [{{ stats.confirmed }}, {{ stats.completed|default(0) }}, {{ stats.cancelled }}],
+                        backgroundColor: [
+                            '#00A3FF', // electric-blue
+                            '#71D8C7', // vibrant-teal
+                            '#ba1a1a'  // error
+                        ],
+                        hoverOffset: 20,
+                        borderWidth: 0,
+                        borderRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                color: '#94a3b8',
+                                font: {
+                                    family: 'Manrope',
+                                    size: 10,
+                                    weight: '800'
+                                },
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        }
+                    },
+                    cutout: '80%',
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
         }
-      });
-    }
-  });
+    });
 </script>
 {% endblock %}

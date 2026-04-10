@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Appointments{% endblock %}
+
+{% block content %}
+<div class="space-y-12">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 px-2">
+        <div>
+            <h1 class="text-4xl md:text-6xl font-extrabold font-syne text-primary tracking-tighter">Clinical Schedule</h1>
+            <p class="text-on-surface-variant font-syne font-bold uppercase tracking-widest text-xs opacity-60 mt-2">Manage your upcoming visits and view live doctor queues.</p>
+        </div>
+        <div class="flex bg-white p-2 rounded-2xl shadow-sm border border-slate-100">
+            <a href="?tab=my_appointments" class="px-8 py-3 rounded-xl text-[10px] font-extrabold uppercase tracking-widest transition-all {% if active_tab == 'my_appointments' %}bg-primary text-white shadow-lg shadow-primary/20{% else %}text-slate-400 hover:text-primary{% endif %}">My Appointment</a>
+            <a href="?tab=appointment_queue" class="px-8 py-3 rounded-xl text-[10px] font-extrabold uppercase tracking-widest transition-all {% if active_tab == 'appointment_queue' %}bg-primary text-white shadow-lg shadow-primary/20{% else %}text-slate-400 hover:text-primary{% endif %}">Appointment Queue</a>
+        </div>
+    </div>
+
+    {% if active_tab == 'my_appointments' %}
+        <!-- MY APPOINTMENTS SECTION -->
+        <div class="grid grid-cols-1 gap-12">
+            {% for section_title, bookings, empty_msg in [
+                ('Protocol: Today', my_today, 'No clinical engagements scheduled for today.'),
+                ('Protocol: Tomorrow', my_tomorrow, 'Your schedule is clear for tomorrow.'),
+                ('Protocol: Next 7 Days', my_week, 'No upcoming appointments in the next standard cycle.')
+            ] %}
+            <div class="space-y-6">
+                <div class="flex items-center gap-4 px-2">
+                    <span class="w-10 h-[1px] bg-slate-200"></span>
+                    <h3 class="text-[10px] font-extrabold uppercase tracking-[0.4em] text-slate-400">{{ section_title }}</h3>
+                    <span class="flex-grow h-[1px] bg-slate-200"></span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {% for b in bookings %}
+                    <div class="glass-ui p-8 rounded-[32px] border-none shadow-xl shadow-primary/5 bg-white group hover:scale-[1.02] transition-all">
+                        <div class="flex justify-between items-start mb-8">
+                            <div class="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-primary group-hover:text-white transition-all">
+                                <span class="material-symbols-outlined text-2xl">medical_services</span>
+                            </div>
+                            <span class="px-3 py-1 bg-vibrant-teal/10 text-vibrant-teal text-[8px] font-extrabold uppercase tracking-widest rounded-lg">Confirmed</span>
+                        </div>
+                        <div class="space-y-1 mb-6">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Attending Specialist</p>
+                            <h4 class="text-xl font-extrabold font-syne text-primary tracking-tight">Dr. {{ b.doctor.name }}</h4>
+                            <p class="text-[10px] font-bold text-slate-400">{{ b.doctor.hospital }}</p>
+                        </div>
+                        <div class="pt-6 border-t border-slate-50 flex justify-between items-end">
+                            <div>
+                                <p class="text-3xl font-extrabold font-syne text-primary tracking-tighter">{{ b.appointment_time }}</p>
+                                <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{{ b.appointment_date.strftime('%d %b %Y') }}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="{{ url_for('booking.reschedule', booking_id=b.id) }}" class="p-2 text-slate-300 hover:text-electric-blue transition-colors" title="Reschedule">
+                                    <span class="material-symbols-outlined">edit_calendar</span>
+                                </a>
+                                <form action="{{ url_for('booking.cancel', booking_id=b.id) }}" method="POST" onsubmit="return confirm('Confirm protocol cancellation?');">
+                                    <button type="submit" class="p-2 text-slate-300 hover:text-error transition-colors" title="Cancel">
+                                        <span class="material-symbols-outlined">cancel</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-span-full py-16 text-center glass-ui rounded-[32px] border-dashed border-2 border-slate-100">
+                        <span class="material-symbols-outlined text-slate-200 text-5xl mb-4">event_busy</span>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{ empty_msg }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- APPOINTMENT QUEUE SECTION -->
+        <div class="grid grid-cols-1 gap-12">
+            {% for section_title, bookings in [
+                ('Live Queue: Today', queue_today),
+                ('Live Queue: Tomorrow', queue_tomorrow),
+                ('Live Queue: Next 7 Days', queue_week)
+            ] %}
+            <div class="space-y-6">
+                <div class="flex items-center gap-4 px-2">
+                    <span class="w-10 h-[1px] bg-slate-200"></span>
+                    <h3 class="text-[10px] font-extrabold uppercase tracking-[0.4em] text-slate-400">{{ section_title }}</h3>
+                    <span class="flex-grow h-[1px] bg-slate-200"></span>
+                </div>
+
+                <div class="flex gap-6 overflow-x-auto pb-6 custom-scrollbar snap-x">
+                    {% for b in bookings %}
+                    <div class="min-w-[320px] glass-ui p-8 rounded-[32px] border-none shadow-xl shadow-primary/5 bg-white snap-center relative group">
+                        {% if b.user_id == current_user.id %}
+                        <div class="absolute top-8 right-8 flex items-center gap-2">
+                            <span class="text-[8px] font-extrabold text-electric-blue uppercase tracking-widest">You</span>
+                            <span class="w-2.5 h-2.5 bg-electric-blue rounded-full animate-pulse shadow-[0_0_12px_#00A3FF]"></span>
+                        </div>
+                        {% endif %}
+
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                                <span class="material-symbols-outlined text-primary text-xl">medical_services</span>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Attending</p>
+                                <p class="text-sm font-bold text-primary">Dr. {{ b.doctor.name }}</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="flex justify-between items-end">
+                                <h3 class="text-4xl font-extrabold font-syne text-primary tracking-tighter">{{ b.appointment_time }}</h3>
+                                <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1">{{ b.appointment_date.strftime('%d %b') }}</p>
+                            </div>
+                            <div class="pt-6 border-t border-slate-50 flex justify-between items-center">
+                                <p class="text-[10px] font-extrabold uppercase tracking-widest {% if b.user_id == current_user.id %}text-electric-blue{% else %}text-slate-400{% endif %}">
+                                    {{ b.masked_name }}
+                                </p>
+                                <span class="text-2xl font-extrabold font-syne text-slate-200 tracking-tighter">#{{ b.queue_number }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="w-full py-20 glass-ui rounded-[40px] flex flex-col items-center justify-center text-slate-300 gap-4 border-dashed border-2 border-slate-100">
+                        <span class="material-symbols-outlined text-4xl">hourglass_empty</span>
+                        <p class="text-[10px] font-extrabold uppercase tracking-widest">Queue Status: No Data available</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

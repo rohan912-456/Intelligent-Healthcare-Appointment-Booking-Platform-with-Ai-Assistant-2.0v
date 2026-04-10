@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}My Appointments{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-btn { padding: 0.5rem 1.25rem; border-radius: 0.75rem; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; transition: all 0.2s ease; border: 1px solid #eceef0; }
+    .filter-btn.active { background: #001238; color: white; border-color: #001238; box-shadow: 0 8px 24px -8px rgba(0,18,56,0.3); }
+    .filter-btn:not(.active) { background: white; color: #94a3b8; }
+    .filter-btn:not(.active):hover { color: #001238; border-color: #001238; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-12">
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div class="space-y-4">
+            <span class="text-[10px] font-extrabold text-electric-blue uppercase tracking-[0.4em] font-syne">Clinical Schedule</span>
+            <h1 class="text-5xl font-extrabold text-primary font-syne tracking-tighter leading-none">My<br/><span class="text-electric-blue">Appointments.</span></h1>
+        </div>
+        <a href="{{ url_for('doctor.dashboard') }}" class="px-8 py-3 rounded-xl border border-atmospheric-grey text-primary font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-3">
+            <span class="material-symbols-outlined text-lg">arrow_back</span> Overview
+        </a>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="flex flex-wrap gap-3">
+        <a href="{{ url_for('doctor.appointments') }}?filter=all" class="filter-btn {% if active_filter == 'all' %}active{% endif %}">All ({{ bookings|length }})</a>
+        <a href="{{ url_for('doctor.appointments') }}?filter=upcoming" class="filter-btn {% if active_filter == 'upcoming' %}active{% endif %}">Upcoming ({{ upcoming_count }})</a>
+        <a href="{{ url_for('doctor.appointments') }}?filter=completed" class="filter-btn {% if active_filter == 'completed' %}active{% endif %}">Completed ({{ completed_count }})</a>
+        <a href="{{ url_for('doctor.appointments') }}?filter=cancelled" class="filter-btn {% if active_filter == 'cancelled' %}active{% endif %}">Cancelled ({{ cancelled_count }})</a>
+    </div>
+
+    <!-- Appointments Table -->
+    <div class="bg-white border border-atmospheric-grey rounded-[2.5rem] overflow-hidden shadow-2xl shadow-primary/5">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50/80">
+                    <tr>
+                        <th class="px-10 py-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Date &amp; Time</th>
+                        <th class="px-10 py-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Patient</th>
+                        <th class="px-10 py-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Contact</th>
+                        <th class="px-10 py-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Reason</th>
+                        <th class="px-10 py-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Status</th>
+                        <th class="px-10 py-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for b in bookings %}
+                    <tr class="group hover:bg-slate-50/70 transition-all {% if b.status != 'confirmed' %}opacity-60{% endif %}">
+                        <td class="px-10 py-8">
+                            <p class="text-sm font-extrabold text-primary">{{ b.appointment_time }}</p>
+                            <p class="text-[9px] font-bold text-slate-400 mt-1">{{ b.appointment_date.strftime('%a, %d %b %Y') }}</p>
+                        </td>
+                        <td class="px-10 py-8">
+                            <div class="flex items-center gap-4">
+                                <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-all">
+                                    <span class="material-symbols-outlined text-base">person</span>
+                                </div>
+                                <p class="text-sm font-bold text-primary">{{ b.patient_name }}</p>
+                            </div>
+                        </td>
+                        <td class="px-10 py-8">
+                            <p class="text-[10px] font-bold text-slate-500">{{ b.patient_email }}</p>
+                            <p class="text-[9px] font-bold text-slate-300 mt-0.5">{{ b.patient_phone }}</p>
+                        </td>
+                        <td class="px-10 py-8 max-w-[200px]">
+                            <p class="text-[10px] font-medium text-slate-500 truncate">{{ b.reason or '—' }}</p>
+                        </td>
+                        <td class="px-10 py-8">
+                            <span class="px-3 py-1.5 rounded-xl text-[8px] font-extrabold uppercase tracking-widest 
+                                {% if b.status == 'confirmed' %}bg-electric-blue/10 text-electric-blue
+                                {% elif b.status == 'completed' %}bg-vibrant-teal/10 text-vibrant-teal
+                                {% else %}bg-slate-100 text-slate-400{% endif %}">
+                                {{ b.status }}
+                            </span>
+                        </td>
+                        <td class="px-10 py-8 text-right">
+                            {% if b.status == 'confirmed' %}
+                            <div class="flex justify-end gap-2">
+                                <form action="{{ url_for('doctor.update_status', booking_id=b.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="status" value="completed">
+                                    <button type="submit" title="Mark Complete" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-vibrant-teal/10 text-vibrant-teal text-[9px] font-extrabold uppercase tracking-widest hover:bg-vibrant-teal hover:text-white transition-all">
+                                        <span class="material-symbols-outlined text-sm">done</span> Done
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('doctor.update_status', booking_id=b.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="status" value="cancelled">
+                                    <button type="submit" title="Cancel" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 text-slate-400 text-[9px] font-extrabold uppercase tracking-widest hover:bg-error/10 hover:text-error transition-all">
+                                        <span class="material-symbols-outlined text-sm">close</span> Cancel
+                                    </button>
+                                </form>
+                            </div>
+                            {% else %}
+                            <span class="material-symbols-outlined text-slate-200">lock</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="px-10 py-20 text-center">
+                            <div class="flex flex-col items-center gap-6">
+                                <span class="material-symbols-outlined text-6xl text-slate-200">calendar_month</span>
+                                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">No appointments found for this filter</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

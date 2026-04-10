@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<div class="space-y-12 h-full">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 px-2">
+        <div>
+            <h1 class="text-4xl md:text-6xl font-extrabold font-syne text-primary tracking-tighter">Clinical Comms</h1>
+            <p class="text-on-surface-variant font-syne font-bold uppercase tracking-widest text-xs opacity-60 mt-2">Authenticated messaging thread with medical administration.</p>
+        </div>
+        <div class="flex items-center gap-4 bg-white px-8 py-4 rounded-2xl shadow-sm border border-slate-100">
+            <span class="w-3 h-3 bg-vibrant-teal rounded-full animate-pulse"></span>
+            <span class="text-[10px] font-extrabold uppercase tracking-widest text-primary">Secure Channel Active</span>
+        </div>
+    </div>
+
+    <!-- Messaging Interface -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 min-h-[600px]">
+        <!-- Thread List -->
+        <div class="lg:col-span-4 space-y-6">
+            <h3 class="text-[10px] font-extrabold uppercase tracking-[0.4em] text-slate-400 px-2 mb-4">Message Inbox</h3>
+            <div class="space-y-4">
+                {% for msg in sent_messages %}
+                <div class="p-6 rounded-[24px] bg-white border border-slate-100 shadow-xl shadow-primary/5 cursor-pointer hover:border-electric-blue transition-all group" onclick="loadThread({{ msg.id }})">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[9px] font-extrabold text-primary uppercase tracking-widest">{{ msg.name }}</span>
+                        <span class="text-[8px] font-bold text-slate-300 uppercase">{{ msg.created_at.strftime('%d %b') }}</span>
+                    </div>
+                    <p class="text-xs font-bold text-slate-500 leading-snug line-clamp-2 truncate">{{ msg.message }}</p>
+                    <div class="mt-4 flex items-center justify-between">
+                        <div class="flex -space-x-2">
+                            <div class="w-6 h-6 rounded-full bg-slate-100 border border-white flex items-center justify-center text-[8px] font-bold">You</div>
+                            {% if msg.replies.count() > 0 %}
+                            <div class="w-6 h-6 rounded-full bg-electric-blue border border-white flex items-center justify-center text-[8px] font-bold text-white">A</div>
+                            {% endif %}
+                        </div>
+                        <span class="text-[8px] font-extrabold uppercase tracking-widest text-slate-300 group-hover:text-electric-blue">{{ msg.replies.count() }} Replies</span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="py-20 text-center glass-ui rounded-[32px] border-dashed border-2 border-slate-100">
+                    <span class="material-symbols-outlined text-slate-200 text-4xl mb-4">chat_bubble_outline</span>
+                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest px-10">No protocol transmissions found.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Dynamic Conversation View -->
+        <div class="lg:col-span-8 glass-ui rounded-[48px] bg-white shadow-2xl shadow-primary/5 flex flex-col overflow-hidden border-none relative">
+            <div id="noThread" class="flex-grow flex flex-col items-center justify-center text-center p-20 space-y-6">
+                <div class="w-24 h-24 rounded-3xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                    <span class="material-symbols-outlined text-slate-200 text-5xl">mark_chat_unread</span>
+                </div>
+                <div>
+                    <h4 class="text-xl font-extrabold font-syne text-primary tracking-tight">Select a Transaction</h4>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">Open a message thread to view full clinical communication logs.</p>
+                </div>
+            </div>
+
+            <!-- Conversation Header (Hidden by default) -->
+            <div id="threadHeader" class="hidden p-10 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
+                <div class="flex items-center gap-6">
+                    <div class="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg">
+                        <span class="material-symbols-outlined text-2xl">clinical_notes</span>
+                    </div>
+                    <div>
+                        <h4 id="threadSubject" class="text-xl font-extrabold font-syne text-primary tracking-tight">Clinical Inquiry</h4>
+                        <p id="threadStatus" class="text-[10px] font-bold text-vibrant-teal uppercase tracking-widest mt-1">Audit Trail Active</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Area (Hidden by default) -->
+            <div id="messagesArea" class="hidden flex-grow overflow-y-auto p-10 space-y-10 custom-scrollbar">
+                <!-- Messages will be injected here -->
+            </div>
+
+            <!-- Input Area (Hidden by default) -->
+            <div id="inputArea" class="hidden p-10 bg-slate-50/50 border-t border-slate-100">
+                <form id="replyForm" action="{{ url_for('booking.send_reply') }}" method="POST" class="flex items-center gap-4">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" id="parent_id" name="parent_id" value="">
+                    <input type="text" name="message" id="replyText" placeholder="Protocol response..." required
+                        class="flex-grow bg-white border-none rounded-2xl py-5 px-8 text-sm font-bold focus:ring-2 focus:ring-electric-blue outline-none transition-all shadow-sm"/>
+                    <button type="submit" class="w-14 h-14 bg-primary text-white rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const SENT_MESSAGES = [
+    {% for msg in sent_messages %}
+    {
+        id: {{ msg.id }},
+        sender: "{{ msg.name }}",
+        text: "{{ msg.message|replace('"', '\\"')|replace('\n', ' ') }}",
+        time: "{{ msg.created_at.strftime('%b %d, %I:%M %p') }}",
+        replies: [
+            {% for r in msg.get_replies() %}
+            {
+                sender: "{{ r.name }}",
+                text: "{{ r.message|replace('"', '\\"')|replace('\n', ' ') }}",
+                time: "{{ r.created_at.strftime('%b %d, %I:%M %p') }}",
+                is_me: {{ 'true' if r.sender_id == current_user.id else 'false' }}
+            },
+            {% endfor %}
+        ]
+    },
+    {% endfor %}
+];
+
+function loadThread(id) {
+    const thread = SENT_MESSAGES.find(m => m.id === id);
+    if (!thread) return;
+
+    // Show components
+    document.getElementById('noThread').classList.add('hidden');
+    document.getElementById('threadHeader').classList.remove('hidden');
+    document.getElementById('messagesArea').classList.remove('hidden');
+    document.getElementById('inputArea').classList.remove('hidden');
+
+    // Update Header
+    document.getElementById('threadSubject').innerText = "Inquiry: " + thread.text.substring(0, 20) + "...";
+    document.getElementById('parent_id').value = thread.id;
+
+    // Update Messages
+    const container = document.getElementById('messagesArea');
+    let html = `
+        <!-- Original Message -->
+        <div class="flex flex-col gap-2 items-end">
+            <div class="bg-primary text-white p-6 rounded-3xl rounded-tr-none shadow-xl max-w-[80%]">
+                <p class="text-sm font-bold leading-relaxed">${thread.text}</p>
+            </div>
+            <span class="text-[9px] font-extrabold text-slate-300 uppercase tracking-widest mr-2">You • ${thread.time}</span>
+        </div>
+    `;
+
+    thread.replies.forEach(r => {
+        const isMe = r.is_me;
+        html += `
+            <div class="flex flex-col gap-2 ${isMe ? 'items-end' : 'items-start'}">
+                <div class="${isMe ? 'bg-primary text-white' : 'bg-slate-100 text-primary'} p-6 rounded-3xl ${isMe ? 'rounded-tr-none' : 'rounded-tl-none'} shadow-lg max-w-[80%]">
+                    <p class="text-sm font-bold leading-relaxed">${r.text}</p>
+                </div>
+                <span class="text-[9px] font-extrabold text-slate-300 uppercase tracking-widest ${isMe ? 'mr-2' : 'ml-2'}">${r.sender} • ${r.time}</span>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight;
+}
+</script>
+{% endblock %}

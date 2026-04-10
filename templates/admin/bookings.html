@@ -1,63 +1,104 @@
 {% extends "base.html" %}
+
 {% block title %}All Bookings{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-container { background: white; border: 1px solid #eceef0; border-radius: 2.5rem; overflow: hidden; }
+    .page-link-active { background: #001238; color: white; border-radius: 0.75rem; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold"><i class="bi bi-calendar3 me-2 text-success"></i>All Bookings</h4>
-    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm rounded-3">← Dashboard</a>
-  </div>
-  <div class="card border-0 shadow-sm rounded-4">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr>
-            <th class="ps-4 small fw-semibold text-muted">#</th>
-            <th class="small fw-semibold text-muted">Patient</th>
-            <th class="small fw-semibold text-muted">Doctor</th>
-            <th class="small fw-semibold text-muted">Date & Time</th>
-            <th class="small fw-semibold text-muted">Phone</th>
-            <th class="small fw-semibold text-muted">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for b in bookings.items %}
-          <tr>
-            <td class="ps-4 text-muted small">{{ b.id }}</td>
-            <td>
-              <div class="fw-semibold small">{{ b.patient_name }}</div>
-              <div class="text-muted" style="font-size:.73rem">{{ b.patient_email }}</div>
-            </td>
-            <td class="small">{{ b.doctor.name }}</td>
-            <td class="small">{{ b.appointment_date.strftime('%d %b %Y') }} {{ b.appointment_time }}</td>
-            <td class="small text-muted">{{ b.patient_phone }}</td>
-            <td>
-              <span class="badge rounded-pill {{ 'bg-success' if b.status == 'confirmed' else 'bg-secondary' }}">
-                {{ b.status }}
-              </span>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<main class="max-w-[1600px] mx-auto px-10 py-20 space-y-16">
+    
+    <!-- Admin Sub-Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-10">
+        <div class="space-y-6">
+            <span class="text-[10px] font-extrabold text-vibrant-teal uppercase tracking-[0.4em] font-syne">Platform Audit Protocol</span>
+            <h1 class="text-5xl md:text-7xl font-extrabold text-primary font-syne tracking-tighter leading-none">Global<br/><span class="text-vibrant-teal">Deployments.</span></h1>
+        </div>
+        
+        <a href="{{ url_for('admin.dashboard') }}" class="px-8 py-3 rounded-xl border border-atmospheric-grey text-primary font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-3">
+            <span class="material-symbols-outlined text-lg">arrow_back</span>
+            Command Center
+        </a>
     </div>
-    <!-- Pagination -->
-    {% if bookings.pages > 1 %}
-    <div class="d-flex justify-content-center py-3">
-      <nav>
-        <ul class="pagination pagination-sm mb-0">
-          {% for p in bookings.iter_pages() %}
-            {% if p %}
-            <li class="page-item {{ 'active' if p == bookings.page else '' }}">
-              <a class="page-link rounded-2" href="?page={{ p }}">{{ p }}</a>
-            </li>
-            {% else %}
-            <li class="page-item disabled"><span class="page-link">…</span></li>
-            {% endif %}
-          {% endfor %}
-        </ul>
-      </nav>
+
+    <!-- Data Table Container -->
+    <div class="admin-container shadow-2xl shadow-primary/5">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-atmospheric-grey">
+                    <tr>
+                        <th class="px-10 py-6 text-[10px] font-extrabold text-slate-400 uppercase tracking-[.2em] border-b border-white">Audit ID</th>
+                        <th class="px-10 py-6 text-[10px] font-extrabold text-slate-400 uppercase tracking-[.2em] border-b border-white">Patient Unit</th>
+                        <th class="px-10 py-6 text-[10px] font-extrabold text-slate-400 uppercase tracking-[.2em] border-b border-white">Clinical Authority</th>
+                        <th class="px-10 py-6 text-[10px] font-extrabold text-slate-400 uppercase tracking-[.2em] border-b border-white">Temporal Pin</th>
+                        <th class="px-10 py-6 text-[10px] font-extrabold text-slate-400 uppercase tracking-[.2em] border-b border-white">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for b in bookings.items %}
+                    <tr class="group hover:bg-slate-50 transition-colors">
+                        <td class="px-10 py-8">
+                            <span class="text-[10px] font-extrabold text-slate-300 uppercase tracking-widest">#{{ b.id }}</span>
+                        </td>
+                        <td class="px-10 py-8">
+                            <div class="space-y-1">
+                                <p class="text-sm font-extrabold text-primary">{{ b.patient_name }}</p>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ b.patient_email }} • {{ b.patient_phone }}</p>
+                            </div>
+                        </td>
+                        <td class="px-10 py-8">
+                            <p class="text-sm font-bold text-on-surface-variant">Dr. {{ b.doctor.name }}</p>
+                            <p class="text-[10px] font-extrabold text-electric-blue uppercase tracking-widest opacity-60">{{ b.doctor.hospital }}</p>
+                        </td>
+                        <td class="px-10 py-8">
+                            <div class="space-y-1">
+                                <p class="text-sm font-bold text-primary">{{ b.appointment_date.strftime('%d %b %Y') }}</p>
+                                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-[.1em]">{{ b.appointment_time }}</p>
+                            </div>
+                        </td>
+                        <td class="px-10 py-8">
+                            <span class="px-3 py-1 rounded-full text-[8px] font-extrabold uppercase tracking-widest 
+                                {% if b.status == 'confirmed' %}bg-electric-blue/10 text-electric-blue{% elif b.status == 'completed' %}bg-vibrant-teal/10 text-vibrant-teal{% else %}bg-slate-100 text-slate-400{% endif %}">
+                                {{ b.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-10 py-32 text-center">
+                            <div class="space-y-6">
+                                <span class="material-symbols-outlined text-slate-200 text-6xl">database_off</span>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">No deployment records found in the current audit period.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- System Pagination -->
+        {% if bookings.pages > 1 %}
+        <div class="px-10 py-10 bg-atmospheric-grey/50 flex justify-center items-center">
+            <nav class="flex items-center gap-2">
+                {% for p in bookings.iter_pages() %}
+                    {% if p %}
+                        <a href="?page={{ p }}" class="w-10 h-10 flex items-center justify-center text-[10px] font-extrabold transition-all border border-slate-100
+                            {% if p == bookings.page %}bg-primary text-white rounded-xl shadow-lg shadow-primary/20{% else %}bg-white text-slate-400 hover:text-primary rounded-xl{% endif %}">
+                            {{ p }}
+                        </a>
+                    {% else %}
+                        <span class="text-slate-300 px-2 font-bold tracking-widest text-xs">...</span>
+                    {% endif %}
+                {% endfor %}
+            </nav>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
-  </div>
-</div>
+
+</main>
 {% endblock %}

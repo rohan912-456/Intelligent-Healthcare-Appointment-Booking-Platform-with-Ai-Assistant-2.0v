@@ -37,59 +37,100 @@ def get_gemini_client():
         return None
 
 
+# ── Keyword Mapping for Digital Intake ──────────────────────
+SYMPTOM_MAP = {
+    "cardiologist": ["heart", "chest pain", "pulse", "hypertension", "palpitation", "cardiac"],
+    "dermatologist": ["skin", "rash", "acne", "itch", "dermal", "eczema", "burn"],
+    "pediatrician": ["child", "baby", "infant", "toddler", "pediatric"],
+    "orthopedic surgeon": ["bone", "joint", "fracture", "spine", "knee", "ortho", "back pain"],
+    "neurologist": ["brain", "headache", "migraine", "seizure", "stroke", "nerve"],
+    "pulmonologist": ["breath", "lung", "asthma", "cough", "shortness of breath", "呼吸"],
+    "psychiatrist": ["anxiety", "depression", "sleep", "stress", "mental", "behavior"],
+    "general physician": ["fever", "cold", "body pain", "flu", "weakness", "infection", "checkup"]
+}
+
 @chat_bp.route("/message", methods=["POST"])
-@limiter.limit("30 per minute")
+@limiter.limit("60 per minute")
 def message():
+    from models import Doctor
     data = request.get_json(silent=True) or {}
     raw_text = data.get("message", "").strip()
 
     if not raw_text:
         return jsonify({"reply": "Please type a message first."}), 400
 
-    # Sanitize user input (strip all HTML tags)
     user_text = bleach.clean(raw_text, tags=[], strip=True)[:500]
+    user_query = user_text.lower()
 
-    if not user_text:
-        return jsonify({"reply": "Invalid message."}), 400
-
-    # Maintain conversation history in session
-    # Format: {"role": "user"/"assistant", "content": "..."}
+    # ── History Synchronization ──
+    # Initialize history early so LOCAL matches are recorded
     history = session.get("chat_history", [])
     history.append({"role": "user", "content": user_text})
-    if len(history) > 20:
-        history = history[-20:]
+    if len(history) > 10: history = history[-10:]
 
+    # 1. Handle Affirmative Intent (Success Follow-up)
+    AFFIRMATIVE_KEYWORDS = ["yes", "yeah", "sure", "book", "help", "proceed", "okay", "ok"]
+    pending_specialist_id = session.get("pending_specialist_id")
+    
+    if any(kw == user_query for kw in AFFIRMATIVE_KEYWORDS) and pending_specialist_id:
+        doctor = Doctor.query.get(pending_specialist_id)
+        if doctor:
+            reply = f"Excellent choice. I'm ready to facilitate your protocol at {doctor.hospital}. Please use the booking interface below to secure your slot with {doctor.name}."
+            history.append({"role": "assistant", "content": reply})
+            session["chat_history"] = history
+            session.modified = True
+            return jsonify({
+                "reply": reply,
+                "specialist": {
+                    "id": doctor.id, "name": doctor.name, 
+                    "specialty": doctor.specialty, "hospital": doctor.hospital
+                }
+            })
+
+    # 2. Local Keyword Matching (Digital Intake)
+    matched_specialty = None
+    for specialty, keywords in SYMPTOM_MAP.items():
+        if any(kw in user_query for kw in keywords):
+            matched_specialty = specialty
+            break
+
+    if matched_specialty:
+        doctor = Doctor.query.filter(Doctor.specialty.ilike(f"%{matched_specialty}%")).filter_by(available=True).first()
+        if doctor:
+            # Store for affirmative follow-up
+            session["pending_specialist_id"] = doctor.id
+            reply = f"Based on your symptoms, I recommend a consultation with a {doctor.specialty.title()}. {doctor.name} at {doctor.hospital} is available. Would you like me to help you book this?"
+            history.append({"role": "assistant", "content": reply})
+            session["chat_history"] = history
+            session.modified = True
+            return jsonify({
+                "reply": reply,
+                "specialist": {
+                    "id": doctor.id, "name": doctor.name, 
+                    "specialty": doctor.specialty, "hospital": doctor.hospital
+                }
+            })
+
+    # 3. Fallback to Gemini (AI Analysis)
+    session.pop("pending_specialist_id", None) # Clear pending if we move to general chat
     model = get_gemini_client()
     if model is None:
-        session["chat_history"] = history
-        reply = (
-            "AI assistant is not configured yet. Please add your GEMINI_API_KEY to the .env file. "
-            "In the meantime, you can browse our doctors and book an appointment directly!"
-        )
+        reply = "I'm currently in high-speed triage mode. Describe symptoms like 'headache' or 'chest pain' for a specialist referral."
         history.append({"role": "assistant", "content": reply})
         session["chat_history"] = history
         return jsonify({"reply": reply})
 
     try:
-        # Map existing history to Gemini format (role: user/model, parts: [str])
-        gemini_history = []
-        # System prompt as the very first message if history is empty or as context
-        # In Gemini 1.5, we can use system_instruction in the model constructor
-        # but here we'll just prepend it or use a simplified approach
+        # Prepend System Prompt to the actual generation call for better context
+        full_context_prompt = f"System Instruction: {SYSTEM_PROMPT}\n\nRecent History:\n"
+        for h in history[:-1]:
+            full_context_prompt += f"{h['role'].capitalize()}: {h['content']}\n"
+        full_context_prompt += f"User: {user_text}\nAssistant:"
 
-        for turn in history[:-1]:  # All except the current message
-            role = "user" if turn["role"] == "user" else "model"
-            gemini_history.append({"role": role, "parts": [turn["content"]]})
-
-        # Re-initialize model with system instruction
-        import google.generativeai as genai
-        model = genai.GenerativeModel(
-            model_name="gemini-3.1-flash-lite-preview",
-            system_instruction=SYSTEM_PROMPT
+        response = model.generate_content(
+            full_context_prompt,
+            generation_config={"max_output_tokens": 150, "temperature": 0.7}
         )
-
-        chat = model.start_chat(history=gemini_history)
-        response = chat.send_message(user_text)
 
         reply = response.text.strip()
         history.append({"role": "assistant", "content": reply})
@@ -99,7 +140,7 @@ def message():
 
     except Exception as e:
         logger.error("Gemini error: %s", e)
-        return jsonify({"reply": "Sorry, I'm having trouble connecting right now. Please try again in a moment."}), 200
+        return jsonify({"reply": "I'm experiencing a brief latency in clinical data. Could you rephrase your symptoms?"}), 200
 
 
 @chat_bp.route("/reset", methods=["POST"])

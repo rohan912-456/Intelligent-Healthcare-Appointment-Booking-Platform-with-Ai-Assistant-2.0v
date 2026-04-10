@@ -1,100 +1,219 @@
 {% extends "base.html" %}
+
 {% block title %}Reschedule Appointment{% endblock %}
+
+{% block extra_css %}
+<style>
+    .glass-summary { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); }
+    .badge-info { background: rgba(0, 163, 255, 0.08); border: 1px solid rgba(0, 163, 255, 0.1); }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <div class="section-badge mb-2">Appointments</div>
-          <h2 class="section-title">Reschedule Appointment</h2>
-          <p class="text-muted">Modify your existing appointment below.</p>
-        </div>
-        <a href="{{ url_for('booking.dashboard') }}" class="btn btn-outline-secondary rounded-3">Cancel</a>
-      </div>
-
-      <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5">
-        <div class="alert alert-info rounded-3 mb-4 d-flex align-items-center">
-          <i class="bi bi-info-circle-fill me-2 fs-5"></i>
-          <div>
-            <strong>Current Appointment:</strong> Dr. {{ booking.doctor.name }} on {{ booking.appointment_date.strftime('%d %b %Y') }} at {{ booking.appointment_time }}
-          </div>
-        </div>
-
-        <form method="POST" novalidate id="rescheduleForm">
-          {{ form.hidden_tag() }}
-
-          <div class="mb-4">
-            <h6 class="text-primary fw-bold mb-3"><i class="bi bi-person-badge me-2"></i>Select Doctor</h6>
-            {{ form.doctor_id.label(class="form-label small fw-semibold") }}
-            {{ form.doctor_id(class="form-select form-select-lg rounded-3" + (" is-invalid" if form.doctor_id.errors else "")) }}
-            {% for e in form.doctor_id.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-          </div>
-
-          <hr class="my-4"/>
-
-          <div class="mb-4">
-            <h6 class="text-primary fw-bold mb-3"><i class="bi bi-person me-2"></i>Patient Details</h6>
-            <div class="row g-3">
-              <div class="col-md-6">
-                {{ form.patient_name.label(class="form-label small fw-semibold") }}
-                {{ form.patient_name(class="form-control rounded-3" + (" is-invalid" if form.patient_name.errors else ""), placeholder="Full Name") }}
-                {% for e in form.patient_name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-              </div>
-              <div class="col-md-6">
-                {{ form.patient_email.label(class="form-label small fw-semibold") }}
-                {{ form.patient_email(class="form-control rounded-3" + (" is-invalid" if form.patient_email.errors else ""), placeholder="Email") }}
-                {% for e in form.patient_email.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-              </div>
-              <div class="col-md-6">
-                {{ form.patient_phone.label(class="form-label small fw-semibold") }}
-                {{ form.patient_phone(class="form-control rounded-3" + (" is-invalid" if form.patient_phone.errors else ""), placeholder="+91 98765 43210") }}
-                {% for e in form.patient_phone.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-              </div>
+<main class="max-w-7xl mx-auto px-12 py-24">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-20 items-start">
+        
+        <!-- Booking Form Column -->
+        <div class="lg:col-span-2 space-y-16">
+            <!-- Header -->
+            <div class="flex justify-between items-end">
+                <div class="space-y-6">
+                    <span class="text-[10px] font-extrabold text-electric-blue uppercase tracking-[0.4em] font-syne">Clinical Modification Protocol</span>
+                    <h1 class="text-5xl md:text-7xl font-extrabold text-primary font-syne tracking-tighter leading-none">Reschedule<br/>Appointment</h1>
+                </div>
+                <a href="{{ url_for('booking.dashboard') }}" class="px-8 py-3 rounded-xl border border-atmospheric-grey text-primary font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all">Abort</a>
             </div>
-          </div>
 
-          <hr class="my-4"/>
-
-          <div class="mb-4">
-            <h6 class="text-primary fw-bold mb-3"><i class="bi bi-calendar3 me-2"></i>Appointment Schedule</h6>
-            <div class="row g-3">
-              <div class="col-md-6">
-                {{ form.appointment_date.label(class="form-label small fw-semibold") }}
-                {{ form.appointment_date(class="form-control rounded-3" + (" is-invalid" if form.appointment_date.errors else ""), id="apptDate") }}
-                {% for e in form.appointment_date.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-              </div>
-              <div class="col-md-6">
-                {{ form.appointment_time.label(class="form-label small fw-semibold") }}
-                {{ form.appointment_time(class="form-select rounded-3" + (" is-invalid" if form.appointment_time.errors else "")) }}
-                {% for e in form.appointment_time.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-              </div>
+            <!-- Current Appointment Alert -->
+            <div class="badge-info p-8 rounded-3xl flex items-start gap-6 border-l-8 border-electric-blue">
+                <div class="w-12 h-12 rounded-2xl bg-electric-blue flex items-center justify-center shrink-0 shadow-lg shadow-electric-blue/20">
+                    <span class="material-symbols-outlined text-white">info</span>
+                </div>
+                <div>
+                    <h4 class="text-xs font-extrabold text-primary uppercase tracking-widest mb-2">Active Protocol Record</h4>
+                    <p class="text-sm font-medium text-on-surface-variant">
+                        Dr. <strong class="text-primary">{{ booking.doctor.name }}</strong> on 
+                        <strong class="text-primary">{{ booking.appointment_date.strftime('%d %b %Y') }}</strong> at 
+                        <strong class="text-primary">{{ booking.appointment_time }}</strong>
+                    </p>
+                </div>
             </div>
-          </div>
 
-          <div class="mb-4">
-            {{ form.reason.label(class="form-label small fw-semibold") }}
-            {{ form.reason(class="form-control rounded-3" + (" is-invalid" if form.reason.errors else ""), rows=3, placeholder="Briefly describe your symptoms or reason for visit (optional)") }}
-            {% for e in form.reason.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-          </div>
+            <!-- Main Form Card -->
+            <div class="bg-white rounded-[40px] p-10 md:p-16 shadow-2xl shadow-primary/5 border border-atmospheric-grey">
+                <form method="POST" class="space-y-12" novalidate id="rescheduleForm">
+                    {{ form.hidden_tag() }}
 
-          <div class="d-grid">
-            <button type="submit" class="btn btn-primary btn-lg rounded-3 fw-semibold py-3">Confirm Reschedule</button>
-          </div>
-        </form>
-      </div>
+                    <!-- Section 1: Specialist -->
+                    <div class="space-y-8">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-electric-blue/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-electric-blue">stethoscope</span>
+                            </div>
+                            <h3 class="text-xl font-extrabold text-primary font-syne tracking-tight">Modify Specialist</h3>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <label class="text-[10px] font-extrabold text-primary/40 uppercase tracking-widest ml-1">{{ form.doctor_id.label.text }}</label>
+                            <div class="relative">
+                                {{ form.doctor_id(class="w-full h-16 pl-6 pr-12 bg-atmospheric-grey border-none rounded-2xl text-sm font-bold text-primary focus:ring-2 focus:ring-electric-blue focus:bg-white transition-all appearance-none outline-none" + (" ring-2 ring-error/20" if form.doctor_id.errors else "")) }}
+                                <span class="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+                            </div>
+                            {% for e in form.doctor_id.errors %}<p class="text-error text-xs font-bold mt-1 ml-1">{{ e }}</p>{% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="h-px bg-slate-100"></div>
+
+                    <!-- Section 2: Patient Info -->
+                    <div class="space-y-8">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-vibrant-teal/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-vibrant-teal">person</span>
+                            </div>
+                            <h3 class="text-xl font-extrabold text-primary font-syne tracking-tight">Patient Identity</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-3">
+                                <label class="text-[10px] font-extrabold text-primary/40 uppercase tracking-widest ml-1">{{ form.patient_name.label.text }}</label>
+                                {{ form.patient_name(class="w-full h-14 px-6 bg-atmospheric-grey border-none rounded-2xl text-sm font-bold text-primary focus:ring-2 focus:ring-vibrant-teal focus:bg-white transition-all outline-none" + (" ring-2 ring-error/20" if form.patient_name.errors else ""), placeholder="Full Name") }}
+                                {% for e in form.patient_name.errors %}<p class="text-error text-[10px] font-bold mt-1 ml-1">{{ e }}</p>{% endfor %}
+                            </div>
+                            <div class="space-y-3">
+                                <label class="text-[10px] font-extrabold text-primary/40 uppercase tracking-widest ml-1">{{ form.patient_email.label.text }}</label>
+                                {{ form.patient_email(class="w-full h-14 px-6 bg-atmospheric-grey border-none rounded-2xl text-sm font-bold text-primary focus:ring-2 focus:ring-vibrant-teal focus:bg-white transition-all outline-none" + (" ring-2 ring-error/20" if form.patient_email.errors else ""), placeholder="Email Address") }}
+                                {% for e in form.patient_email.errors %}<p class="text-error text-[10px] font-bold mt-1 ml-1">{{ e }}</p>{% endfor %}
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <label class="text-[10px] font-extrabold text-primary/40 uppercase tracking-widest ml-1">{{ form.patient_phone.label.text }}</label>
+                            {{ form.patient_phone(class="w-full h-14 px-6 bg-atmospheric-grey border-none rounded-2xl text-sm font-bold text-primary focus:ring-2 focus:ring-vibrant-teal focus:bg-white transition-all outline-none" + (" ring-2 ring-error/20" if form.patient_phone.errors else ""), placeholder="+91 98765 43210") }}
+                            {% for e in form.patient_phone.errors %}<p class="text-error text-[10px] font-bold mt-1 ml-1">{{ e }}</p>{% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="h-px bg-slate-100"></div>
+
+                    <!-- Section 3: Schedule -->
+                    <div class="space-y-8">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-electric-blue/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-electric-blue">calendar_today</span>
+                            </div>
+                            <h3 class="text-xl font-extrabold text-primary font-syne tracking-tight">New Schedule</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-3">
+                                <label class="text-[10px] font-extrabold text-primary/40 uppercase tracking-widest ml-1">{{ form.appointment_date.label.text }}</label>
+                                <div class="relative">
+                                    {{ form.appointment_date(class="w-full h-14 px-6 bg-atmospheric-grey border-none rounded-2xl text-sm font-bold text-primary focus:ring-2 focus:ring-electric-blue focus:bg-white transition-all outline-none" + (" ring-2 ring-error/20" if form.appointment_date.errors else ""), id="apptDate") }}
+                                </div>
+                                {% for e in form.appointment_date.errors %}<p class="text-error text-[10px] font-bold mt-1 ml-1">{{ e }}</p>{% endfor %}
+                            </div>
+                            <div class="space-y-3">
+                                <label class="text-[10px] font-extrabold text-primary/40 uppercase tracking-widest ml-1">{{ form.appointment_time.label.text }}</label>
+                                <div class="relative">
+                                    {{ form.appointment_time(class="w-full h-14 px-6 bg-atmospheric-grey border-none rounded-2xl text-sm font-bold text-primary focus:ring-2 focus:ring-electric-blue focus:bg-white appearance-none transition-all outline-none" + (" ring-2 ring-error/20" if form.appointment_time.errors else "")) }}
+                                    <span class="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">schedule</span>
+                                </div>
+                                {% for e in form.appointment_time.errors %}<p class="text-error text-[10px] font-bold mt-1 ml-1">{{ e }}</p>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Reason -->
+                    <div class="space-y-4">
+                        <label class="text-[10px] font-extrabold text-primary/40 uppercase tracking-widest ml-1">{{ form.reason.label.text }} (Optional)</label>
+                        {{ form.reason(class="w-full px-6 py-6 bg-atmospheric-grey border-none rounded-3xl text-sm font-bold text-primary focus:ring-2 focus:ring-electric-blue focus:bg-white transition-all outline-none" + (" ring-2 ring-error/20" if form.reason.errors else ""), rows=4, placeholder="Briefly describe your symptoms...") }}
+                    </div>
+
+                    <!-- Submit Action -->
+                    <div class="pt-8">
+                        <button type="submit" class="w-full py-6 bg-gradient-to-br from-primary to-primary-container text-white rounded-3xl font-extrabold font-syne text-xl shadow-2xl shadow-primary/20 hover:scale-[0.99] active:scale-95 transition-all duration-300 flex items-center justify-center gap-4 uppercase tracking-widest">
+                            Confirm Modification
+                            <span class="material-symbols-outlined">published_with_changes</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Summary Sidebar Column -->
+        <div class="hidden lg:block space-y-12 shrink-0 w-full max-w-sm sticky top-32">
+            <div class="glass-summary p-10 rounded-[40px] border border-white/60 space-y-10">
+                <h4 class="text-xs font-extrabold text-primary uppercase tracking-[0.4em] font-syne border-b border-atmospheric-grey pb-8">Modification Summary</h4>
+                
+                <div class="space-y-12">
+                    <div class="flex items-start gap-5">
+                        <div class="w-12 h-12 rounded-2xl bg-electric-blue/10 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-electric-blue">stethoscope</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-extrabold text-primary/40 uppercase tracking-widest mb-1">New Specialist</p>
+                            <p id="summaryDoctor" class="text-sm font-bold text-primary">Pending</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-5">
+                        <div class="w-12 h-12 rounded-2xl bg-vibrant-teal/10 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-vibrant-teal">schedule</span>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-extrabold text-primary/40 uppercase tracking-widest mb-1">New Temporal Sync</p>
+                            <p id="summarySchedule" class="text-sm font-bold text-primary">Awaiting Input</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-primary/5 p-8 rounded-3xl space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 bg-vibrant-teal rounded-full animate-pulse"></div>
+                            <span class="text-[9px] font-extrabold text-primary uppercase tracking-widest">Audit Transparency</span>
+                        </div>
+                        <p class="text-[11px] font-bold text-on-surface-variant leading-relaxed opacity-60">All modifications are logged for clinical accountability. Previous slot will be released upon confirmation.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
+</main>
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Set min date to today
-const apptDate = document.getElementById('apptDate');
-if (apptDate) {
-  const today = new Date().toISOString().split('T')[0];
-  apptDate.setAttribute('min', today);
-}
+    // Set min date to today
+    const apptDate = document.getElementById('apptDate');
+    if (apptDate) {
+        const today = new Date().toISOString().split('T')[0];
+        apptDate.setAttribute('min', today);
+    }
+
+    // Dynamic Summary Updating
+    const doctorSelect = document.querySelector('select[name="doctor_id"]');
+    const summaryDoctor = document.getElementById('summaryDoctor');
+    const summarySchedule = document.getElementById('summarySchedule');
+    const dateInput = document.getElementById('apptDate');
+    const timeSelect = document.querySelector('select[name="appointment_time"]');
+
+    function updateSummary() {
+        if (doctorSelect && doctorSelect.selectedIndex > 0) {
+            summaryDoctor.textContent = doctorSelect.options[doctorSelect.selectedIndex].text;
+        }
+        
+        let dateVal = dateInput ? dateInput.value : '';
+        let timeVal = timeSelect ? timeSelect.value : '';
+        
+        if (dateVal || timeVal) {
+            summarySchedule.textContent = `${dateVal || 'Date pending'} • ${timeVal || 'Time pending'}`;
+        }
+    }
+
+    if (doctorSelect) doctorSelect.addEventListener('change', updateSummary);
+    if (dateInput) dateInput.addEventListener('change', updateSummary);
+    if (timeSelect) timeSelect.addEventListener('change', updateSummary);
+    
+    // Initial update
+    updateSummary();
 </script>
 {% endblock %}

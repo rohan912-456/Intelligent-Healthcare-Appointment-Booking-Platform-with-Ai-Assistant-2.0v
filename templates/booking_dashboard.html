@@ -1,345 +1,226 @@
 {% extends "base.html" %}
-{% block title %}Booking Dashboard{% endblock %}
+{% block title %}Patient Portal{% endblock %}
 
 {% block content %}
-{% macro empty_state() %}
-<div class="empty-state text-center py-5">
-  <div class="empty-icon px-3 py-2 bg-light rounded-circle d-inline-block mb-3 fs-3 text-primary"><i class="bi bi-calendar-plus"></i></div>
-  <h5 class="fw-semibold">No upcoming appointments</h5>
-  <p class="text-muted">You don't have any future appointments scheduled.</p>
-  <a href="{{ url_for('booking.book') }}" class="btn btn-primary rounded-3 px-4 mt-2">Book Now</a>
-</div>
-{% endmacro %}
-
-{% macro empty_state_past() %}
-<div class="empty-state text-center py-5">
-  <div class="empty-icon px-3 py-2 bg-light rounded-circle d-inline-block mb-3 fs-3 text-secondary"><i class="bi bi-clock-history"></i></div>
-  <h5 class="fw-semibold">No past appointments</h5>
-  <p class="text-muted">Your completed appointments will appear here.</p>
-</div>
-{% endmacro %}
-
-{% macro empty_state_cancelled() %}
-<div class="empty-state text-center py-5">
-  <div class="empty-icon px-3 py-2 bg-light rounded-circle d-inline-block mb-3 fs-3 text-danger"><i class="bi bi-x-circle"></i></div>
-  <h5 class="fw-semibold">No cancelled appointments</h5>
-</div>
-{% endmacro %}
-
-{% macro booking_card(b) %}
-<div class="col-lg-6">
-  <div class="booking-card rounded-4 shadow-sm p-4 bg-white {{ 'cancelled-booking' if b.status == 'cancelled' else '' }} h-100 d-flex flex-column">
-    <div class="d-flex justify-content-between align-items-start mb-3">
-      <div>
-        <h6 class="fw-bold mb-1" style="cursor:pointer; color:#0dcaf0;" onclick="showDoctorProfile('{{ b.doctor.name }}', '{{ b.doctor.specialty }}', '{{ b.doctor.hospital }}')">
-          Dr. {{ b.doctor.name }} <i class="bi bi-info-circle small text-muted"></i>
-        </h6>
-        <small class="text-muted"><i class="bi bi-building me-1"></i>{{ b.doctor.hospital }}</small>
-      </div>
-      <span class="badge rounded-pill {{ 'bg-success' if b.status == 'confirmed' else 'bg-secondary' }} px-3 py-2">
-        {{ b.status|capitalize }}
-      </span>
-    </div>
-    
-    <div class="booking-meta d-flex flex-wrap gap-3 mb-3 flex-grow-1">
-      <span class="meta-item"><i class="bi bi-calendar3 text-primary me-1"></i>{{ b.appointment_date.strftime('%d %b %Y') }}</span>
-      <span class="meta-item"><i class="bi bi-clock text-primary me-1"></i>{{ b.appointment_time }}</span>
-    </div>
-    
-    {% if b.status == 'confirmed' %}
-    <div class="d-flex gap-2 mb-3 mt-auto flex-wrap">
-      <a href="{{ url_for('booking.export_ics', booking_id=b.id) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-        <i class="bi bi-calendar-plus me-1"></i> Add to Calendar
-      </a>
-      <a href="https://www.google.com/maps/search/?api=1&query={{ b.doctor.lat }},{{ b.doctor.lng }}" target="_map" class="btn btn-sm btn-outline-info rounded-pill px-3">
-        <i class="bi bi-geo-alt me-1"></i> Directions
-      </a>
-      <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="document.getElementById('chatToggle').click()">
-        <i class="bi bi-chat-dots me-1"></i> Msg
-      </button>
-    </div>
-    {% endif %}
-
-    <hr class="my-3 mx-n4 border-light">
-    
-    <div class="d-flex justify-content-between align-items-center mt-auto">
-      <span class="text-muted" style="font-size:.75rem">Booked {{ b.created_at.strftime('%d %b %Y') }}</span>
-      <div class="d-flex gap-2">
-        {% if b.status == 'confirmed' %}
-        <a href="{{ url_for('booking.reschedule', booking_id=b.id) }}" class="btn btn-sm btn-outline-primary rounded-3">
-          <i class="bi bi-arrow-repeat me-1"></i>Reschedule
-        </a>
-        <form method="POST" action="{{ url_for('booking.cancel', booking_id=b.id) }}" class="d-inline"
-              onsubmit="return confirm('Cancel this appointment?')">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <button type="submit" class="btn btn-sm btn-outline-danger rounded-3">
-            <i class="bi bi-x-circle me-1"></i>Cancel
-          </button>
-        </form>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-{% endmacro %}
-
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet" />
-<style>
-  .module-tabs {
-    background: #f8f9fa;
-    border-radius: 50px;
-    padding: 5px;
-    display: inline-flex;
-    margin-bottom: 30px;
-  }
-  .module-tabs .nav-link {
-    border-radius: 50px;
-    padding: 10px 25px;
-    color: #495057;
-    font-weight: 600;
-  }
-  .module-tabs .nav-link.active {
-    background-color: #0dcaf0;
-    color: white;
-    box-shadow: 0 4px 6px rgba(13, 202, 240, 0.2);
-  }
-  .inner-tabs .nav-link {
-    color: #6c757d;
-    font-weight: 500;
-    border-bottom: 2px solid transparent;
-  }
-  .inner-tabs .nav-link.active {
-    color: #0dcaf0;
-    border-bottom: 2px solid #0dcaf0;
-    background: transparent;
-  }
-</style>
-
-<div class="container py-5">
-  <div class="text-center mb-4">
-    <div class="section-badge mb-2">Dashboard</div>
-    <h2 class="section-title mb-4">Booking Dashboard</h2>
-
-    <!-- Top Centered Sub-Modules -->
-    <ul class="nav nav-pills module-tabs justify-content-center" id="dashboardTabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="my-booking-tab" data-bs-toggle="pill" data-bs-target="#my-booking" type="button" role="tab" aria-controls="my-booking" aria-selected="true">
-          <i class="bi bi-journal-medical me-2"></i>My Booking
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="appointment-queue-tab" data-bs-toggle="pill" data-bs-target="#appointment-queue" type="button" role="tab" aria-controls="appointment-queue" aria-selected="false">
-          <i class="bi bi-people-fill me-2"></i>Appointment Queue
-        </button>
-      </li>
-    </ul>
-  </div>
-
-  <div class="tab-content" id="dashboardTabsContent">
-    <!-- 1. MY BOOKING SUB-MODULE -->
-    <div class="tab-pane fade show active" id="my-booking" role="tabpanel" aria-labelledby="my-booking-tab">
-      
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <ul class="nav inner-tabs mb-0" id="myBookingInnerTabs" role="tablist">
-          <li class="nav-item"><button class="nav-link active border-0" id="upcoming-list-tab" data-bs-toggle="tab" data-bs-target="#upcoming-list">Upcoming</button></li>
-          <li class="nav-item"><button class="nav-link border-0" id="past-list-tab" data-bs-toggle="tab" data-bs-target="#past-list">Past</button></li>
-          <li class="nav-item"><button class="nav-link border-0" id="cancelled-list-tab" data-bs-toggle="tab" data-bs-target="#cancelled-list">Cancelled</button></li>
-          <li class="nav-item"><button class="nav-link border-0" id="calendar-view-tab" data-bs-toggle="tab" data-bs-target="#calendar-view"><i class="bi bi-calendar-month"></i> Calendar</button></li>
-        </ul>
-        <a href="{{ url_for('booking.book') }}" class="btn btn-primary rounded-3 px-3"><i class="bi bi-plus-lg me-1"></i>New</a>
-      </div>
-
-      <div class="tab-content">
-        <!-- Upcoming Tab -->
-        <div class="tab-pane fade show active" id="upcoming-list">
-          {% set upcoming = my_bookings | selectattr('appointment_date', 'ge', today_date) | selectattr('status', 'equalto', 'confirmed') | list %}
-          {% if upcoming %}
-            <div class="row g-4">
-              {% for b in upcoming %}
-                {{ booking_card(b) }}
-              {% endfor %}
+<div class="space-y-12">
+    <!-- Tier 1: Health Profile Overview -->
+    <div class="glass-ui p-12 rounded-[48px] border-none shadow-2xl shadow-primary/5 bg-white overflow-hidden relative">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-electric-blue/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+        
+        <div class="flex flex-col md:flex-row items-center gap-12 relative z-10">
+            <div class="w-32 h-32 rounded-[40px] overflow-hidden border-4 border-slate-50 shadow-xl">
+                <img src="https://ui-avatars.com/api/?name={{ current_user.name }}&background=00A3FF&color=fff&size=128" alt="Profile" class="w-full h-full object-cover"/>
             </div>
-          {% else %}
-            {{ empty_state() }}
-          {% endif %}
-        </div>
-
-        <!-- Past Tab -->
-        <div class="tab-pane fade" id="past-list">
-          {% set past = my_bookings | selectattr('appointment_date', 'lt', today_date) | selectattr('status', 'equalto', 'confirmed') | list %}
-          {% set completed = my_bookings | selectattr('status', 'equalto', 'completed') | list %}
-          {% set all_past = past + completed %}
-          {% if all_past %}
-            <div class="row g-4">
-              {% for b in all_past %}
-                {{ booking_card(b) }}
-              {% endfor %}
+            
+            <div class="flex-grow space-y-4 text-center md:text-left">
+                <p class="text-[10px] font-extrabold text-electric-blue uppercase tracking-[0.4em] font-syne">Clinical Identity</p>
+                <h1 class="text-4xl md:text-6xl font-extrabold font-syne text-primary tracking-tighter">{{ current_user.name }}</h1>
+                <div class="flex flex-wrap justify-center md:justify-start gap-6 pt-2">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-slate-400 text-lg">mail</span>
+                        <span class="text-xs font-bold text-slate-500">{{ current_user.email }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-vibrant-teal text-lg">verified_user</span>
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Premium Patient Account</span>
+                    </div>
+                </div>
             </div>
-          {% else %}
-            {{ empty_state_past() }}
-          {% endif %}
-        </div>
 
-        <!-- Cancelled Tab -->
-        <div class="tab-pane fade" id="cancelled-list">
-          {% set cancelled = my_bookings | selectattr('status', 'equalto', 'cancelled') | list %}
-          {% if cancelled %}
-            <div class="row g-4">
-              {% for b in cancelled %}
-                {{ booking_card(b) }}
-              {% endfor %}
+            <div class="flex gap-4">
+                <a href="{{ url_for('booking.book') }}" class="px-8 py-4 bg-primary text-white rounded-2xl font-extrabold text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">New Appointment</a>
             </div>
-          {% else %}
-            {{ empty_state_cancelled() }}
-          {% endif %}
         </div>
+    </div>
 
-        <!-- Calendar View -->
-        <div class="tab-pane fade" id="calendar-view">
-          <div class="card border-0 shadow-sm rounded-4 p-4">
-            <div id="bookingCalendar"></div>
-          </div>
-        </div>
-      </div>
-    </div> <!-- END MY BOOKING -->
-
-    <!-- 2. APPOINTMENT QUEUE SUB-MODULE -->
-    <div class="tab-pane fade" id="appointment-queue" role="tabpanel" aria-labelledby="appointment-queue-tab">
-      
-      <div class="card border-0 shadow-sm rounded-4 p-4">
-        <form class="d-flex gap-2 flex-wrap mb-4 justify-content-end" method="GET" action="{{ url_for('booking.dashboard') }}#appointment-queue">
-          <div class="d-flex align-items-center">
-            <label class="me-2 fw-semibold text-muted small">Show for:</label>
-            <select name="queue_filter" class="form-select form-select-sm" style="width:150px" onchange="this.form.submit()">
-              <option value="today" {% if queue_filter == 'today' %}selected{% endif %}>Today</option>
-              <option value="tomorrow" {% if queue_filter == 'tomorrow' %}selected{% endif %}>Tomorrow</option>
-              <option value="7days" {% if queue_filter == '7days' %}selected{% endif %}>Next 7 Days</option>
-            </select>
-          </div>
-        </form>
-
-        {% if queue_bookings %}
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Queue #</th>
-                  <th>Patient Name</th>
-                  <th>Appointment Time</th>
-                  <th>Date</th>
-                  <th>Doctor</th>
-                  {% if current_user.is_admin or current_user.role == 'doctor' %}
-                  <th>Contact</th>
-                  <th>Reason</th>
-                  {% endif %}
-                </tr>
-              </thead>
-              <tbody>
-                {% for qb in queue_bookings %}
-                <tr>
-                  <td><span class="badge bg-secondary p-2 rounded-circle">{{ qb.queue_number }}</span></td>
-                  <td class="fw-semibold">
-                    {% if current_user.is_admin or (current_user.role == 'doctor' and qb.doctor_id == current_user.doctor_profile.id) %}
-                      {{ qb.patient_name }}
-                    {% else %}
-                      {{ qb.masked_name }}
+    <!-- Tier 2: Real-time Queue & Stats -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <!-- Live Queue Monitor (Horizontal) -->
+        <div class="lg:col-span-2 space-y-8">
+            <div class="flex justify-between items-center px-2">
+                <h4 class="text-xl font-extrabold font-syne tracking-tight text-primary uppercase">Active Queue Feed</h4>
+                <div class="flex gap-4">
+                    <a href="?queue_filter=today" class="text-[9px] font-extrabold uppercase tracking-widest {% if queue_filter == 'today' %}text-electric-blue border-b-2 border-electric-blue{% else %}text-slate-400{% endif %}">Today</a>
+                    <a href="?queue_filter=7days" class="text-[9px] font-extrabold uppercase tracking-widest {% if queue_filter == '7days' %}text-electric-blue border-b-2 border-electric-blue{% else %}text-slate-400{% endif %}">Next 7 Days</a>
+                </div>
+            </div>
+            
+            <div class="flex gap-6 overflow-x-auto pb-6 custom-scrollbar snap-x">
+                {% for b in queue_bookings %}
+                <div class="min-w-[300px] bento-card snap-center group hover:border-electric-blue transition-all relative">
+                    {% if b.user_id == current_user.id %}
+                    <div class="absolute top-6 right-6 w-2 h-2 bg-electric-blue rounded-full animate-pulse shadow-[0_0_10px_#00A3FF]"></div>
                     {% endif %}
-                    {% if current_user.id == qb.user_id %}<span class="badge bg-info ms-1">You</span>{% endif %}
-                  </td>
-                  <td><i class="bi bi-clock me-1 text-primary"></i>{{ qb.appointment_time }}</td>
-                  <td><i class="bi bi-calendar3 me-1 text-primary"></i>{{ qb.appointment_date.strftime('%d %b %Y') }}</td>
-                  <td>Dr. {{ qb.doctor.name }}</td>
-                  {% if current_user.is_admin or current_user.role == 'doctor' %}
-                  <td><small>{{ qb.patient_phone }}<br><span class="text-muted">{{ qb.patient_email }}</span></small></td>
-                  <td><small class="text-muted">{{ qb.reason or "-" }}</small></td>
-                  {% endif %}
-                </tr>
+                    
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary text-xl">medical_services</span>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Protocol Authority</p>
+                            <p class="text-xs font-bold text-primary">{{ b.doctor.name }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-end">
+                            <h3 class="text-3xl font-extrabold font-syne text-primary tracking-tight">{{ b.appointment_time }}</h3>
+                            <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1">{{ b.appointment_date.strftime('%d %b') }}</p>
+                        </div>
+                        <div class="pt-4 border-t border-slate-50">
+                            <p class="text-[10px] font-extrabold uppercase tracking-widest {% if b.user_id == current_user.id %}text-electric-blue{% else %}text-slate-400{% endif %}">
+                                {% if b.user_id == current_user.id %}Your Position: #{{ b.queue_number }}{% else %}{{ b.masked_name }}{% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="w-full py-20 glass-ui rounded-[40px] flex flex-col items-center justify-center text-slate-300 gap-4">
+                    <span class="material-symbols-outlined text-4xl">event_busy</span>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest">Queue Status: Empty</p>
+                </div>
                 {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <div class="text-center py-5">
-            <div class="empty-icon fs-1 text-muted mb-3"><i class="bi bi-inbox"></i></div>
-            <h5 class="fw-semibold">No patients in queue</h5>
-            <p class="text-muted">No one is currently in the queue for the selected timeframe.</p>
-          </div>
-        {% endif %}
-      </div>
-    </div> <!-- END APPOINTMENT QUEUE -->
-  </div>
-</div>
+            </div>
+        </div>
 
-<!-- Doctor Profile Modal Template -->
-<div class="modal fade" id="doctorModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 border-0 shadow">
-      <div class="modal-header border-0 pb-0">
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body text-center pt-0 px-4 pb-4">
-        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
-          <i class="bi bi-person-fill"></i>
+        <!-- Health Analytics -->
+        <div class="bento-card bg-primary text-white flex flex-col">
+            <h4 class="text-xl font-extrabold font-syne tracking-tight mb-10 uppercase">Clinical Activity</h4>
+            <div class="chart-container flex-grow min-h-[250px] relative">
+                <canvas id="healthChart"></canvas>
+            </div>
+            <div class="grid grid-cols-2 gap-6 mt-10 pt-10 border-t border-white/10">
+                <div class="text-center">
+                    <p class="text-[9px] font-bold uppercase tracking-widest opacity-40 mb-1">Resolved</p>
+                    <p class="text-lg font-extrabold font-syne">{{ my_bookings|selectattr('status', 'equalto', 'completed')|list|length }}</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-[9px] font-bold uppercase tracking-widest opacity-40 mb-1">Scheduled</p>
+                    <p class="text-lg font-extrabold font-syne">{{ my_bookings|selectattr('status', 'equalto', 'confirmed')|list|length }}</p>
+                </div>
+            </div>
         </div>
-        <h4 id="docName" class="fw-bold mb-1"></h4>
-        <p id="docSpec" class="text-primary fw-semibold mb-3"></p>
-        <div class="d-flex align-items-center justify-content-center gap-2 mb-3 text-muted">
-          <i class="bi bi-building"></i> <span id="docHosp"></span>
-        </div>
-        <div class="d-grid mt-4">
-          <button type="button" class="btn btn-outline-primary rounded-3" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
     </div>
-  </div>
-</div>
 
+    <!-- Tier 3: History & Protocol Logs -->
+    <div class="space-y-8">
+        <h4 class="text-xl font-extrabold font-syne tracking-tight text-primary uppercase px-2">Health Record Log</h4>
+        <div class="bento-card p-0 overflow-hidden bg-white border-none shadow-2xl shadow-primary/5">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-10 py-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Authorization</th>
+                            <th class="px-10 py-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Protocol Station</th>
+                            <th class="px-10 py-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Status</th>
+                            <th class="px-10 py-6 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for b in my_bookings %}
+                        <tr class="group hover:bg-slate-50 transition-all">
+                            <td class="px-10 py-8">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
+                                        <span class="material-symbols-outlined text-lg">clinical_notes</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-primary">{{ b.doctor.name }}</p>
+                                        <p class="text-[9px] font-bold text-slate-300">{{ b.appointment_date.strftime('%B %d, %Y') }} at {{ b.appointment_time }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-10 py-8">
+                                <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{{ b.doctor.hospital }}</p>
+                            </td>
+                            <td class="px-10 py-8">
+                                <span class="px-3 py-1.5 rounded-xl text-[8px] font-extrabold uppercase tracking-widest 
+                                    {% if b.status == 'confirmed' %}bg-electric-blue/10 text-electric-blue
+                                    {% elif b.status == 'completed' %}bg-vibrant-teal/10 text-vibrant-teal
+                                    {% else %}bg-slate-100 text-slate-400{% endif %}">
+                                    {{ b.status }}
+                                </span>
+                            </td>
+                            <td class="px-10 py-8 text-right">
+                                <div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <a href="{{ url_for('booking.reschedule', booking_id=b.id) }}" class="p-2 text-slate-400 hover:text-electric-blue transition-all" title="Reschedule">
+                                        <span class="material-symbols-outlined text-lg">edit_calendar</span>
+                                    </a>
+                                    <a href="{{ url_for('booking.export_ics', booking_id=b.id) }}" class="p-2 text-slate-400 hover:text-primary transition-all" title="Export Calendar">
+                                        <span class="material-symbols-outlined text-lg">download</span>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="px-10 py-20 text-center">
+                                <div class="flex flex-col items-center gap-6">
+                                    <div class="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-slate-300 text-3xl">folder_open</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-extrabold text-primary font-syne">No Records Found</p>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">No appointments logged on this account.</p>
+                                    </div>
+                                    {% if current_user.is_admin %}
+                                    <a href="{{ url_for('admin.bookings') }}" class="px-6 py-3 bg-primary text-white text-[10px] font-extrabold uppercase tracking-widest rounded-2xl hover:bg-electric-blue transition-all shadow-lg shadow-primary/20">
+                                        View All System Bookings
+                                    </a>
+                                    {% else %}
+                                    <a href="{{ url_for('booking.book') }}" class="px-6 py-3 bg-primary text-white text-[10px] font-extrabold uppercase tracking-widest rounded-2xl hover:bg-electric-blue transition-all shadow-lg shadow-primary/20">
+                                        Book Your First Appointment
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Check hash to auto-open tab
-    if (window.location.hash == "#appointment-queue") {
-      new bootstrap.Tab(document.querySelector('#appointment-queue-tab')).show();
-    }
-
-    // Calendar Initialization
-    var calendarEl = document.getElementById('bookingCalendar');
-    if (calendarEl) {
-      var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek'
-        },
-        events: [
-          {% for b in my_bookings %}
-            {
-              title: "Dr. {{ b.doctor.name }}",
-              start: "{{ b.appointment_date }}T{{ b.appointment_time }}",
-              url: "{% if b.status == 'confirmed' %}#upcoming-list{% else %}#past-list{% endif %}",
-              color: "{% if b.status == 'confirmed' %}#0dcaf0{% elif b.status == 'completed' %}#198754{% else %}#6c757d{% endif %}"
-            }{% if not loop.last %},{% endif %}
-          {% endfor %}
-        ]
-      });
-
-      // Render calendar when its tab is shown
-      var calendarTab = document.querySelector('#calendar-view-tab');
-      calendarTab.addEventListener('shown.bs.tab', function () {
-        calendar.render();
-      });
-    }
-  });
-
-  function showDoctorProfile(name, spec, hosp) {
-    document.getElementById('docName').textContent = 'Dr. ' + name;
-    document.getElementById('docSpec').textContent = spec;
-    document.getElementById('docHosp').textContent = hosp;
-    new bootstrap.Modal(document.getElementById('doctorModal')).show();
-  }
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('healthChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Clinical Visits',
+                        data: [2, 1, 3, 2, 4, {{ my_bookings|length }}],
+                        borderColor: '#fff',
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#00A3FF',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        fill: true,
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255, 255, 255, 0.4)', font: { size: 9, weight: 'bold' } }
+                        }
+                    }
+                }
+            });
+        }
+    });
 </script>
 {% endblock %}

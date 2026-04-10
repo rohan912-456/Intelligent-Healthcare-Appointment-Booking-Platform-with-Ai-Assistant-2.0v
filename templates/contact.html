@@ -1,66 +1,99 @@
 {% extends "base.html" %}
-{% block title %}Contact{% endblock %}
+{% block title %}Get In Touch{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <div class="section-header text-center mb-5">
-        <div class="section-badge">Get In Touch</div>
-        <h2 class="section-title">Contact Us</h2>
-        <p class="text-muted">Have a question? We're here to help.</p>
-      </div>
-
-      <div class="row g-4">
-        <div class="col-md-4">
-          <div class="contact-info-card rounded-4 p-4 h-100">
-            <div class="contact-info-icon mb-3"><i class="bi bi-telephone-fill"></i></div>
-            <h6 class="fw-bold">Emergency</h6>
-            <p class="text-muted small mb-0">Call <strong>112</strong> for medical emergencies in India</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="contact-info-card rounded-4 p-4 h-100">
-            <div class="contact-info-icon mb-3"><i class="bi bi-clock-fill"></i></div>
-            <h6 class="fw-bold">Working Hours</h6>
-            <p class="text-muted small mb-0">Mon–Sat: 9:00 AM – 6:00 PM<br>Emergencies: 24/7</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="contact-info-card rounded-4 p-4 h-100">
-            <div class="contact-info-icon mb-3"><i class="bi bi-geo-alt-fill"></i></div>
-            <h6 class="fw-bold">Location</h6>
-            <p class="text-muted small mb-0">Nagpur, Maharashtra, India</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 mt-4">
-        <h5 class="fw-bold mb-4">Send Us a Message</h5>
-        <form method="POST" novalidate>
-          {{ form.hidden_tag() }}
-          <div class="row g-3">
-            <div class="col-md-6">
-              {{ form.name.label(class="form-label small fw-semibold") }}
-              {{ form.name(class="form-control rounded-3" + (" is-invalid" if form.name.errors else ""), placeholder="Your Name") }}
-              {% for e in form.name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-            </div>
-            <div class="col-md-6">
-              {{ form.email.label(class="form-label small fw-semibold") }}
-              {{ form.email(class="form-control rounded-3" + (" is-invalid" if form.email.errors else ""), placeholder="you@email.com") }}
-              {% for e in form.email.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-            </div>
-            <div class="col-12">
-              {{ form.message.label(class="form-label small fw-semibold") }}
-              {{ form.message(class="form-control rounded-3" + (" is-invalid" if form.message.errors else ""), rows=5, placeholder="Tell us how we can help…") }}
-              {% for e in form.message.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
-            </div>
-          </div>
-          <div class="d-grid mt-4">
-            {{ form.submit(class="btn btn-primary btn-lg rounded-3 fw-semibold") }}
-          </div>
-        </form>
-      </div>
+<div class="max-w-7xl mx-auto px-10 py-24">
+    <!-- ── Header Section ───────────────────────────────────── -->
+    <div class="text-center mb-24">
+        <h1 class="text-3xl md:text-[120px] font-extrabold font-syne tracking-[-0.05em] leading-none text-primary mb-12">
+            Get In Touch
+        </h1>
+        <p class="text-xl text-on-surface-variant font-medium max-w-2xl mx-auto leading-relaxed">
+            Connect with our clinical support team or visit our facility. Experience the future of medical management.
+        </p>
     </div>
-  </div>
+
+    <!-- ── Info Bento Grid ─────────────────────────────────── -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+        <!-- Emergency -->
+        <div class="glass-ui p-10 rounded-[40px] text-center group hover:scale-[1.02] transition-all">
+            <div class="w-20 h-20 rounded-full bg-electric-blue/10 flex items-center justify-center mx-auto mb-8 group-hover:bg-electric-blue transition-colors">
+                <span class="material-symbols-outlined text-4xl text-electric-blue group-hover:text-white transition-colors">medical_services</span>
+            </div>
+            <h3 class="text-2xl font-extrabold font-syne text-primary mb-2 uppercase tracking-tight">Emergency</h3>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Immediate clinical assistance</p>
+            <p class="text-4xl font-extrabold font-syne text-primary">112</p>
+        </div>
+
+        <!-- Working Hours -->
+        <div class="glass-ui p-10 rounded-[40px] text-center group hover:scale-[1.02] transition-all">
+            <div class="w-20 h-20 rounded-full bg-vibrant-teal/10 flex items-center justify-center mx-auto mb-8 group-hover:bg-vibrant-teal transition-colors">
+                <span class="material-symbols-outlined text-4xl text-vibrant-teal group-hover:text-white transition-colors">schedule</span>
+            </div>
+            <h3 class="text-2xl font-extrabold font-syne text-primary mb-2 uppercase tracking-tight">Working Hours</h3>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Monday — Saturday</p>
+            <p class="text-4xl font-extrabold font-syne text-primary">08:00 – 20:00</p>
+        </div>
+
+        <!-- Location -->
+        <div class="glass-ui p-10 rounded-[40px] text-center group hover:scale-[1.02] transition-all">
+            <div class="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mx-auto mb-8 group-hover:bg-primary transition-colors">
+                <span class="material-symbols-outlined text-4xl text-primary group-hover:text-white transition-colors">location_on</span>
+            </div>
+            <h3 class="text-2xl font-extrabold font-syne text-primary mb-2 uppercase tracking-tight">Location</h3>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">MedApp Pro Headquarters</p>
+            <p class="text-4xl font-extrabold font-syne text-primary leading-tight">Nagpur, India</p>
+        </div>
+    </div>
+
+    <!-- ── Contact Form Canvas ──────────────────────────────── -->
+    <div class="flex flex-col lg:flex-row gap-12 mb-24">
+        <!-- Form Side -->
+        <div class="flex-grow glass-ui p-16 rounded-[48px] shadow-2xl shadow-primary/5">
+            <form method="POST" class="space-y-10">
+                {{ form.hidden_tag() }}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400 ml-1">Full Name</label>
+                        {{ form.name(class="w-full bg-slate-50 border-none rounded-2xl py-5 px-8 text-sm focus:ring-2 focus:ring-electric-blue transition-all outline-none font-bold", placeholder="Dr. Julian Pierce") }}
+                    </div>
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400 ml-1">Email Address</label>
+                        {{ form.email(class="w-full bg-slate-50 border-none rounded-2xl py-5 px-8 text-sm focus:ring-2 focus:ring-electric-blue transition-all outline-none font-bold", placeholder="julian@clinicalcouture.com") }}
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400 ml-1">Recipient</label>
+                    {{ form.recipient(class="w-full bg-slate-50 border-none rounded-2xl py-5 px-8 text-sm focus:ring-2 focus:ring-electric-blue transition-all outline-none font-bold cursor-pointer") }}
+                </div>
+
+                <div class="space-y-3">
+                    <label class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-400 ml-1">Your Message</label>
+                    {{ form.message(class="w-full bg-slate-50 border-none rounded-2xl py-5 px-8 text-sm focus:ring-2 focus:ring-electric-blue transition-all outline-none font-bold", rows=6, placeholder="How can we assist your clinical workflow today?") }}
+                </div>
+
+                <div class="pt-6">
+                    <button type="submit" class="group flex items-center gap-4 px-10 py-5 bg-primary text-white rounded-2xl font-extrabold text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+                        Send Message
+                        <span class="material-symbols-outlined text-lg group-hover:translate-x-2 transition-transform">arrow_forward</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Graphic/Map Side -->
+        <div class="lg:w-96 flex flex-col gap-8">
+            <div class="h-full rounded-[48px] overflow-hidden relative group">
+                <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=1200" alt="MedApp Tech" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"/>
+                <div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/20 to-transparent"></div>
+                <div class="absolute bottom-10 left-10 right-10 p-10 glass-ui rounded-3xl bg-white/40 border-white/20 backdrop-blur-3xl">
+                    <h4 class="text-xl font-bold text-white font-syne mb-2">MedApp Pro Tech Hub</h4>
+                    <p class="text-xs text-white/80 font-bold leading-relaxed">Nagpur IT Park, Maharashtra 440022</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

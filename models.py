@@ -12,6 +12,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     role = db.Column(db.String(20), default="patient")
+    phone = db.Column(db.String(20), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     bookings = db.relationship("Booking", backref="user", lazy=True)
 
@@ -73,10 +74,22 @@ class Booking(db.Model):
 class ContactMessage(db.Model):
     __tablename__ = "contact_messages"
     id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey("doctors.id"), nullable=True)
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(150), nullable=False)
     message = db.Column(db.Text, nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey("contact_messages.id"), nullable=True)
+    is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    replies = db.relationship("ContactMessage", backref=db.backref("parent", remote_side=[id]), lazy="dynamic")
+    sender_relation = db.relationship("User", backref="sent_messages", foreign_keys=[sender_id])
+    doctor_relation = db.relationship("Doctor", backref="received_messages", foreign_keys=[doctor_id])
+
+    def get_replies(self):
+        return self.replies.order_by(ContactMessage.created_at.asc()).all()
 
 
 @login_manager.user_loader
