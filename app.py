@@ -9,7 +9,11 @@ def create_app(env=None):
     app = Flask(__name__)
 
     # Load config
-    env = env or os.getenv("FLASK_ENV", "development")
+    if os.getenv("VERCEL"):
+        env = "production"
+    else:
+        env = env or os.getenv("FLASK_ENV", "development")
+
     app.config.from_object(config_map.get(env, config_map["default"]))
 
     # Logging
