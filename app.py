@@ -38,12 +38,19 @@ def create_app(env=None):
     # Exempt chat from CSRF (JSON API)
     csrf.exempt(chat_bp)
 
-    # Seed DB on first run
+    # Seed DB on first run (especially important for Vercel cold starts)
     with app.app_context():
-        db.create_all()
-        _seed_data(app)
+        try:
+            db.create_all()
+            _seed_data(app)
+        except Exception as e:
+            app.logger.warning("DB initialization error (likely already exists): %s", e)
 
     return app
+
+
+# Create the app instance for Vercel/WSGI
+app = create_app()
 
 
 def _seed_data(app):
@@ -113,5 +120,4 @@ def _seed_data(app):
 
 
 if __name__ == "__main__":
-    application = create_app()
-    application.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5000)

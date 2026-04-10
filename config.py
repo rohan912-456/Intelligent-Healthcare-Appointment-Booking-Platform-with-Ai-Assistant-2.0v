@@ -38,7 +38,11 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///medical.db")
+    # Vercel is a read-only filesystem except for /tmp
+    if os.getenv("VERCEL"):
+        SQLALCHEMY_DATABASE_URI = "sqlite:////tmp/medical.db"
+    else:
+        SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///medical.db")
 
 
 config_map = {
