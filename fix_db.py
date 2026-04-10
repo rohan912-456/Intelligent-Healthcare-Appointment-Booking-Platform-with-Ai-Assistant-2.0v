@@ -21,11 +21,11 @@ def fix_schema():
 
     migrations = [
         # (table, column, definition)
-        ("contact_messages", "doctor_id",  "INTEGER REFERENCES doctors(id)"),
-        ("contact_messages", "parent_id",  "INTEGER REFERENCES contact_messages(id)"),
-        ("contact_messages", "is_read",    "BOOLEAN NOT NULL DEFAULT 0"),
-        ("contact_messages", "sender_id",  "INTEGER REFERENCES users(id)"),
-        ("users",            "phone",      "VARCHAR(20)"),
+        ("contact_messages", "doctor_id", "INTEGER REFERENCES doctors(id)"),
+        ("contact_messages", "parent_id", "INTEGER REFERENCES contact_messages(id)"),
+        ("contact_messages", "is_read", "BOOLEAN NOT NULL DEFAULT 0"),
+        ("contact_messages", "sender_id", "INTEGER REFERENCES users(id)"),
+        ("users", "phone", "VARCHAR(20)"),
     ]
 
     changed = 0

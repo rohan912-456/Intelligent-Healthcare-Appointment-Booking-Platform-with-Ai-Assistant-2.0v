@@ -1,17 +1,22 @@
 """Route smoke test with proper auth session testing."""
 import sys
 sys.path.insert(0, '.')
-from app import create_app
-from models import User, ContactMessage
-from extensions import db
-from sqlalchemy import text
+from app import create_app  # noqa: E402
+from models import User, ContactMessage  # noqa: E402
+from extensions import db  # noqa: E402
+from sqlalchemy import text  # noqa: E402
 
 app = create_app()
 app.config['TESTING'] = True
 app.config['WTF_CSRF_ENABLED'] = False
 
-PASS = lambda msg: print(f"PASS: {msg}")
-FAIL = lambda msg: print(f"FAIL: {msg}")
+def PASS(msg):
+    print(f"PASS: {msg}")
+
+
+def FAIL(msg):
+    print(f"FAIL: {msg}")
+
 
 with app.app_context():
     client = app.test_client()
@@ -62,7 +67,6 @@ with app.app_context():
     if patients:
         patient = patients[0]
         # Most patients were seeded as doctors; use admin as fallback test
-    
     # Login as admin again to test /booking paths are admin-accessible too
     client.post('/auth/login', data={
         'email': admin.email, 'password': 'Admin@123', 'remember': False

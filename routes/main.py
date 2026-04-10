@@ -1,9 +1,8 @@
 import logging
 from flask import Blueprint, render_template, redirect, url_for, flash, current_app
-from flask_mail import Message
 from models import Doctor, ContactMessage
 from forms import ContactForm
-from extensions import db, mail
+from extensions import db
 
 main_bp = Blueprint("main", __name__)
 logger = logging.getLogger(__name__)
@@ -20,17 +19,15 @@ def index():
 @main_bp.route("/contact", methods=["GET", "POST"])
 def contact():
     form = ContactForm()
-    
     # Populate recipients
     doctors = Doctor.query.all()
     form.recipient.choices = [("admin", "System Administrator")] + [
         (str(d.id), d.name) for d in doctors
     ]
-    
     if form.validate_on_submit():
         recipient_val = form.recipient.data
         doctor_id = None if recipient_val == "admin" else int(recipient_val)
-        
+
         from flask_login import current_user
         sender_id = current_user.id if current_user.is_authenticated else None
 

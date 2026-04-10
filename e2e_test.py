@@ -2,7 +2,9 @@
 End-to-end HTTP test against the running Flask server at http://127.0.0.1:5000
 Run while the Flask dev server is running.
 """
-import requests, sys, re, json
+import requests
+import sys
+import re
 
 BASE = "http://127.0.0.1:5000"
 RESULTS = []
@@ -36,6 +38,7 @@ def get_csrf(session, url):
     r = session.get(url)
     return extract_csrf(r.text), r
 
+
 print("=" * 60)
 print("MedApp End-to-End Smoke Test")
 print("=" * 60)
@@ -55,7 +58,7 @@ check("Registration page loads", reg_page.status_code == 200)
 check("CSRF token on register page", bool(csrf_reg), csrf_reg[:15] + "..." if csrf_reg else "MISSING")
 
 TEST_EMAIL = "e2etest_final@example.com"
-TEST_PASS  = "Test@1234"
+TEST_PASS = "Test@1234"
 
 reg_res = s_patient.post(f"{BASE}/auth/register", data={
     'name': 'E2E Patient', 'email': TEST_EMAIL,
@@ -122,7 +125,7 @@ check("Admin login succeeds", admin_login.status_code == 200 and '/auth/login' n
 admin_msgs_r = s_admin.get(f"{BASE}/admin/messages")
 check("Admin /messages returns 200", admin_msgs_r.status_code == 200)
 check("No error on admin messages", 'Internal Server Error' not in admin_msgs_r.text)
-check("Admin reply form present", 'admin/messages/reply' in admin_msgs_r.text, 
+check("Admin reply form present", 'admin/messages/reply' in admin_msgs_r.text,
       "found" if 'admin/messages/reply' in admin_msgs_r.text else "NOT found")
 check("E2E Patient message visible", 'E2E Patient' in admin_msgs_r.text)
 
@@ -134,7 +137,8 @@ if reply_urls:
         'message': 'Hello E2E Patient! Admin here.', 'csrf_token': reply_csrf
     }, allow_redirects=True)
     check("Admin reply POST succeeds", rr.status_code == 200)
-    check("Reply appears after submit", 'Hello E2E Patient' in rr.text or 'Reply sent' in rr.text or 'success' in rr.text.lower())
+    check("Reply appears after submit", 'Hello E2E Patient' in rr.text or 'Reply sent' in rr.text
+          or 'success' in rr.text.lower())
 else:
     print("  SKIP: No reply form URLs found (no messages on page or admin not logged in)")
 
@@ -191,11 +195,11 @@ print("\n" + "=" * 60)
 print("FINAL RESULTS")
 print("=" * 60)
 passes = sum(1 for s, _, _ in RESULTS if s == "PASS")
-fails  = sum(1 for s, _, _ in RESULTS if s == "FAIL")
+fails = sum(1 for s, _, _ in RESULTS if s == "FAIL")
 for status, name, detail in RESULTS:
     sym = "[OK]" if status == "PASS" else "[!!]"
     d = f"  [{detail}]" if detail else ""
     print(f"  {sym} {status}: {name}{d}")
-print(f"\n{'='*60}")
+print(f"\n{'=' * 60}")
 print(f"Result: {passes} PASS / {fails} FAIL / {len(RESULTS)} total")
 sys.exit(0 if fails == 0 else 1)

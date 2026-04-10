@@ -66,23 +66,26 @@ def message():
     # Initialize history early so LOCAL matches are recorded
     history = session.get("chat_history", [])
     history.append({"role": "user", "content": user_text})
-    if len(history) > 10: history = history[-10:]
+    if len(history) > 10:
+        history = history[-10:]
 
     # 1. Handle Affirmative Intent (Success Follow-up)
     AFFIRMATIVE_KEYWORDS = ["yes", "yeah", "sure", "book", "help", "proceed", "okay", "ok"]
     pending_specialist_id = session.get("pending_specialist_id")
-    
     if any(kw == user_query for kw in AFFIRMATIVE_KEYWORDS) and pending_specialist_id:
         doctor = Doctor.query.get(pending_specialist_id)
         if doctor:
-            reply = f"Excellent choice. I'm ready to facilitate your protocol at {doctor.hospital}. Please use the booking interface below to secure your slot with {doctor.name}."
+            reply = (
+                f"Excellent choice. I'm ready to facilitate your protocol at {doctor.hospital}. "
+                f"Please use the booking interface below to secure your slot with {doctor.name}."
+            )
             history.append({"role": "assistant", "content": reply})
             session["chat_history"] = history
             session.modified = True
             return jsonify({
                 "reply": reply,
                 "specialist": {
-                    "id": doctor.id, "name": doctor.name, 
+                    "id": doctor.id, "name": doctor.name,
                     "specialty": doctor.specialty, "hospital": doctor.hospital
                 }
             })
@@ -99,23 +102,29 @@ def message():
         if doctor:
             # Store for affirmative follow-up
             session["pending_specialist_id"] = doctor.id
-            reply = f"Based on your symptoms, I recommend a consultation with a {doctor.specialty.title()}. {doctor.name} at {doctor.hospital} is available. Would you like me to help you book this?"
+            reply = (
+                f"Based on your symptoms, I recommend a consultation with a {doctor.specialty.title()}. "
+                f"{doctor.name} at {doctor.hospital} is available. Would you like me to help you book this?"
+            )
             history.append({"role": "assistant", "content": reply})
             session["chat_history"] = history
             session.modified = True
             return jsonify({
                 "reply": reply,
                 "specialist": {
-                    "id": doctor.id, "name": doctor.name, 
+                    "id": doctor.id, "name": doctor.name,
                     "specialty": doctor.specialty, "hospital": doctor.hospital
                 }
             })
 
     # 3. Fallback to Gemini (AI Analysis)
-    session.pop("pending_specialist_id", None) # Clear pending if we move to general chat
+    session.pop("pending_specialist_id", None)  # Clear pending if we move to general chat
     model = get_gemini_client()
     if model is None:
-        reply = "I'm currently in high-speed triage mode. Describe symptoms like 'headache' or 'chest pain' for a specialist referral."
+        reply = (
+            "I'm currently in high-speed triage mode. Describe symptoms like "
+            "'headache' or 'chest pain' for a specialist referral."
+        )
         history.append({"role": "assistant", "content": reply})
         session["chat_history"] = history
         return jsonify({"reply": reply})
@@ -140,7 +149,10 @@ def message():
 
     except Exception as e:
         logger.error("Gemini error: %s", e)
-        return jsonify({"reply": "I'm experiencing a brief latency in clinical data. Could you rephrase your symptoms?"}), 200
+        return jsonify({
+            "reply": "I'm experiencing a brief latency in clinical data. "
+                     "Could you rephrase your symptoms?"
+        }), 200
 
 
 @chat_bp.route("/reset", methods=["POST"])

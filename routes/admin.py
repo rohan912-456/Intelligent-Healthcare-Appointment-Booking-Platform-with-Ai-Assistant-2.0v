@@ -120,9 +120,12 @@ def users():
 def logs():
     # Simple mock logs or filtered messages as requested
     system_logs = [
-        {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "event": "Admin logged in", "status": "Secure"},
-        {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "event": "Database Schema Synced", "status": "Fixed"},
-        {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "event": "Patient Message Received", "status": "Unread"},
+        {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+         "event": "Admin logged in", "status": "Secure"},
+        {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+         "event": "Database Schema Synced", "status": "Fixed"},
+        {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+         "event": "Patient Message Received", "status": "Unread"},
     ]
     return render_template("admin/logs.html", logs=system_logs)
 
@@ -131,14 +134,12 @@ def logs():
 @admin_required
 def export_report():
     bookings = Booking.query.all()
-    
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['ID', 'Patient Name', 'Doctor', 'Date', 'Time', 'Status', 'Reason'])
-    
     for b in bookings:
-        writer.writerow([b.id, b.patient_name, b.doctor.name, b.appointment_date, b.appointment_time, b.status, b.reason])
-    
+        writer.writerow([b.id, b.patient_name, b.doctor.name, b.appointment_date,
+                         b.appointment_time, b.status, b.reason])
+
     output.seek(0)
     return Response(
         output.getvalue(),

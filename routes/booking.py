@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, date
 from flask import Blueprint, render_template, redirect, url_for, flash, current_app, request, Response, jsonify
 from flask_login import login_required, current_user
 from flask_mail import Message
-from models import Doctor, Booking, ContactMessage, User
+from models import Doctor, Booking, ContactMessage
 from forms import BookingForm
 from extensions import db, mail
 
@@ -261,8 +261,10 @@ def appointments():
     week_end = today_date + timedelta(days=7)
 
     # My Appointments: today, tomorrow, next 7 days
-    my_today = Booking.query.filter_by(user_id=current_user.id, appointment_date=today_date).order_by(Booking.appointment_time).all()
-    my_tomorrow = Booking.query.filter_by(user_id=current_user.id, appointment_date=tomorrow_date).order_by(Booking.appointment_time).all()
+    my_today = Booking.query.filter_by(user_id=current_user.id,
+                                       appointment_date=today_date).order_by(Booking.appointment_time).all()
+    my_tomorrow = Booking.query.filter_by(user_id=current_user.id,
+                                          appointment_date=tomorrow_date).order_by(Booking.appointment_time).all()
     my_week = Booking.query.filter(
         Booking.user_id == current_user.id,
         Booking.appointment_date > tomorrow_date,
@@ -421,9 +423,6 @@ def update_profile():
         current_user.name = new_name
     if new_phone:
         current_user.phone = new_phone
-    
-    db.session.commit()
-    flash("Profile updated successfully!", "success")
     return redirect(url_for("booking.dashboard"))
 
 
@@ -459,4 +458,3 @@ def my_doctors():
     doctor_list.sort(key=lambda x: x["latest_date"], reverse=True)
 
     return render_template("patient_my_doctors.html", doctor_list=doctor_list)
-

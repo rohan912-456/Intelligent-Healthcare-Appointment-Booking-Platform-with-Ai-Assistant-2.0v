@@ -68,7 +68,7 @@ def appointments():
         bookings = base_query.order_by(Booking.appointment_date.desc()).all()
 
     all_bookings = base_query.all()
-    upcoming_count  = sum(1 for b in all_bookings if b.status == "confirmed")
+    upcoming_count = sum(1 for b in all_bookings if b.status == "confirmed")
     completed_count = sum(1 for b in all_bookings if b.status == "completed")
     cancelled_count = sum(1 for b in all_bookings if b.status == "cancelled")
 
@@ -88,11 +88,9 @@ def messages():
     if not current_user.doctor_profile:
         flash("No doctor profile linked.", "danger")
         return redirect(url_for("main.index"))
-    
     doctor_id = current_user.doctor_profile.id
     all_messages = ContactMessage.query.filter_by(doctor_id=doctor_id, parent_id=None).order_by(
         ContactMessage.created_at.desc()).all()
-    
     return render_template("doctor/messages.html", messages=all_messages)
 
 @doctor_bp.route("/status/<int:booking_id>", methods=["POST"])
@@ -161,4 +159,3 @@ def notifications():
         for m in unread
     ]
     return jsonify({"count": len(result), "notifications": result})
-

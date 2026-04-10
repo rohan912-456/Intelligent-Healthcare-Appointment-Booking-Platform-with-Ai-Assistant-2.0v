@@ -26,19 +26,19 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/medapp:latest
-            ghcr.io/${{ github.repository_owner }}/medapp:${{ github.sha }}
+        run: |
+          # GHCR requires lowercase repository and owner names
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          docker build -t ghcr.io/$REPO_LOWER:latest -t ghcr.io/$REPO_LOWER:${{ github.sha }} .
+          docker push ghcr.io/$REPO_LOWER:latest
+          docker push ghcr.io/$REPO_LOWER:${{ github.sha }}
+          echo "IMAGE_TAG=ghcr.io/$REPO_LOWER:latest" >> $GITHUB_ENV
 
       - name: Deployment summary
         run: |
           echo "✅ Docker image pushed to:"
-          echo "   ghcr.io/${{ github.repository_owner }}/medapp:latest"
+          echo "   ${{ env.IMAGE_TAG }}"
           echo ""
           echo "Pull and run on your server:"
-          echo "   docker pull ghcr.io/${{ github.repository_owner }}/medapp:latest"
+          echo "   docker pull ${{ env.IMAGE_TAG }}"
           echo "   docker-compose up -d"
