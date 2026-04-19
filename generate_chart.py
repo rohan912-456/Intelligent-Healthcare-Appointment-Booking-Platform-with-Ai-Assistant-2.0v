@@ -21,24 +21,25 @@ digraph G {
   
   "Login" -> "Role-Based Redirection" [arrowhead=vee];
   "Role-Based Redirection" [shape=diamond, fillcolor="#17a2b8", fontcolor="white", color="#138496", height=0.8];
-  
+
   "Role-Based Redirection" -> "Patient Dashboard" [label=" Patient "];
   "Role-Based Redirection" -> "Doctor Dashboard" [label=" Doctor "];
   "Role-Based Redirection" -> "Admin Dashboard" [label=" Admin "];
-  
+
   subgraph cluster_Patient {
       label="Patient Flow";
       fontname="Helvetica-Bold";
       style=dashed;
       color="#007bff";
-      "Patient Dashboard" -> "Book Appointment" -> "AI Chat Triage" -> "Geolocation Mapping" -> "Select Doctor" -> "Doctor Available?";
+      "Patient Dashboard" -> "Book Appointment" -> "AI Chat Triage";
+      "AI Chat Triage" -> "Geolocation Mapping" -> "Select Doctor" -> "Doctor Available?";
       "Doctor Available?" [shape=diamond, fillcolor="#ffc107", color="#e0a800", margin=0.2];
       "Doctor Available?" -> "Save to Database" [label=" Yes "];
       "Save to Database" -> "Email Confirmation" -> "Queue Privacy Masking" -> End;
       "Doctor Available?" -> "Emergency Connect / Retry" [label=" No "];
       "Emergency Connect / Retry" -> End;
   }
-  
+
   subgraph cluster_Doctor {
       label="Doctor Flow";
       fontname="Helvetica-Bold";
@@ -46,7 +47,7 @@ digraph G {
       color="#28a745";
       "Doctor Dashboard" -> "View Patient Queue" -> "Mark Consultation Status" -> End;
   }
-  
+
   subgraph cluster_Admin {
       label="Admin Flow";
       fontname="Helvetica-Bold";
