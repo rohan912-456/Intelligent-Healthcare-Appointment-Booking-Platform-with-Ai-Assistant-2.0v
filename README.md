@@ -1,6 +1,6 @@
-# 🏥 MedApp — Smart Medical Appointment Platform
+# 🏥 Clinical Couture — Smart Medical Appointment Platform
 
-[![CI](https://github.com/YOUR_USERNAME/medapp/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/medapp/actions/workflows/ci.yml)
+[![CI](https://github.com/YOUR_USERNAME/clinical_couture/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/clinical_couture/actions/workflows/ci.yml)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.0-green.svg)](https://flask.palletsprojects.com)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://docker.com)
@@ -50,7 +50,7 @@ Edit `.env` (auto-created from `.env.example` on first run):
 | `GOOGLE_MAPS_KEY` | Optional | Enables interactive map |
 | `MAIL_USERNAME` | Optional | Gmail for confirmations |
 | `MAIL_PASSWORD` | Optional | Gmail App Password |
-| `ADMIN_EMAIL` | Optional | Default: admin@medapp.com |
+| `ADMIN_EMAIL` | Optional | Default: admin@clinicalcouture.com |
 | `ADMIN_PASSWORD` | Optional | Default: Admin@1234 |
 
 ### GitHub Actions Secrets
@@ -79,7 +79,7 @@ push to main / PR
       ├─ ci.yml ── pytest · flake8 · docker build check
       │
       └─ deploy.yml (main only)
-          ├── Push Docker image → ghcr.io/YOUR_USERNAME/medapp:latest
+          ├── Push Docker image → ghcr.io/YOUR_USERNAME/clinical_couture:latest
           └── (Optional) SSH deploy to VPS
 ```
 
@@ -88,7 +88,7 @@ push to main / PR
 ## 📁 Project Structure
 
 ```
-medapp/
+medical_app/
 ├── app.py                    # App factory + DB seeding
 ├── config.py                 # Dev / Prod config classes
 ├── extensions.py             # Flask extensions
@@ -138,8 +138,8 @@ source venv/bin/activate && pytest tests/ -v
 ## 🐳 Deploy to a VPS
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/medapp.git
-cd medapp && cp .env.example .env
+git clone https://github.com/YOUR_USERNAME/clinical_couture.git
+cd medical_app && cp .env.example .env
 nano .env   # fill in your keys
 bash setup.sh --docker
 ```

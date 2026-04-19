@@ -40,7 +40,7 @@ def get_csrf(session, url):
 
 
 print("=" * 60)
-print("MedApp End-to-End Smoke Test")
+print("Clinical Couture End-to-End Smoke Test")
 print("=" * 60)
 
 # ── TEST 1: Homepage ──────────────────────────────────────────

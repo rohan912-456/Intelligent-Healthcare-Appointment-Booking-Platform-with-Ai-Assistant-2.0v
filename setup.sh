@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════
-#   MedApp — One-Step Setup & Launch
+#   Clinical Couture — One-Step Setup & Launch
 #   Usage:  bash setup.sh [--docker] [--test]
 # ═══════════════════════════════════════════════════════════
 set -euo pipefail
@@ -22,7 +22,7 @@ done
 
 echo ""
 echo -e "${BLUE}╔══════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║       MedApp — Setup & Launch        ║${NC}"
+echo -e "${BLUE}║   Clinical Couture — Setup & Launch  ║${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════╝${NC}"
 echo ""
 
@@ -39,7 +39,7 @@ if $DOCKER; then
   mkdir -p data
   info "Building and starting Docker containers…"
   docker-compose up --build -d
-  success "MedApp is running at http://localhost:5000"
+  success "Clinical Couture is running at http://localhost:5000"
   echo ""
   echo -e "  Admin login: check ADMIN_EMAIL / ADMIN_PASSWORD in your .env"
   echo -e "  Logs:  ${YELLOW}docker-compose logs -f${NC}"
@@ -88,7 +88,7 @@ if $RUN_TESTS; then
 fi
 
 # Launch
-success "Setup complete! Starting MedApp…"
+success "Setup complete! Starting Clinical Couture…"
 echo ""
 echo -e "  🌐  App:    ${GREEN}http://localhost:5000${NC}"
 echo -e "  🔑  Admin:  ${GREEN}http://localhost:5000/admin/${NC}"

@@ -1,10 +1,10 @@
 import os
 
-output_file = 'MedApp_Frontend_Code.txt'
+output_file = 'Clinical_Couture_Frontend_Code.txt'
 folders = ['templates', 'static/css', 'static/js']
 
 with open(output_file, 'w', encoding='utf-8') as outfile:
-    outfile.write('--- UI/FRONTEND CODEBASE FOR GOOGLE STITCH ---\n\n')
+    outfile.write('--- UI/FRONTEND CODEBASE FOR CLINICAL COUTURE ---\n\n')
     for folder in folders:
         for root, _, files in os.walk(folder):
             for file in files:

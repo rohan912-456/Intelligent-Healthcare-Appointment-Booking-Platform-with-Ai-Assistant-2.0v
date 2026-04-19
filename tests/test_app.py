@@ -39,7 +39,7 @@ def db(app):
 def test_home_loads(client):
     rv = client.get("/")
     assert rv.status_code == 200
-    assert b"MedApp" in rv.data or b"medapp" in rv.data.lower()
+    assert b"Clinical Couture" in rv.data or b"clinical couture" in rv.data.lower()
 
 
 def test_contact_get(client):

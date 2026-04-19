@@ -16,7 +16,7 @@ body { font-family: var(--font-body); color: #212529; background: #f8faff; }
 h1,h2,h3,h4,h5,h6 { font-family: var(--font-head); }
 
 /* ── Navbar ──────────────────────────────────────────── */
-.medapp-nav {
+.cc-nav {
   background: linear-gradient(135deg, var(--hero-start) 0%, #1565c0 100%);
   border-bottom: 1px solid rgba(255,255,255,.08);
   padding: .6rem 0;
@@ -143,7 +143,7 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--font-head); }
 .btn-book:hover { opacity: .9; color: #fff; transform: translateY(-1px); }
 
 /* ── Map ─────────────────────────────────────────────── */
-.medapp-map { width: 100%; height: 420px; }
+.cc-map { width: 100%; height: 420px; }
 .map-placeholder {
   height: 300px; background: linear-gradient(135deg, #e8f0ff, #f0f5ff);
   border: 2px dashed #b8cdf0;
@@ -221,7 +221,7 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--font-head); }
 .admin-quick-link:hover { transform: translateX(4px); box-shadow: 0 4px 16px rgba(13,110,253,.12); }
 
 /* ── Footer ──────────────────────────────────────────── */
-.medapp-footer {
+.cc-footer {
   background: linear-gradient(135deg, var(--hero-start), #1565c0);
   border-top: 1px solid rgba(255,255,255,.08);
 }

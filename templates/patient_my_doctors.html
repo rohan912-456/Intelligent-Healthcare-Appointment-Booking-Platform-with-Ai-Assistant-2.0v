@@ -15,11 +15,16 @@
         </a>
     </div>
 
+    <!-- Search Bar Removed as requested -->
+
     <!-- Doctor Grid -->
     {% if doctor_list %}
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+    <div id="doctorGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 transition-all duration-300">
         {% for item in doctor_list %}
-        <div class="group bg-white border border-atmospheric-grey rounded-[2rem] p-8 hover:border-electric-blue hover:shadow-2xl hover:shadow-electric-blue/10 transition-all duration-500 relative overflow-hidden">
+        <div class="doctor-card-item group bg-white border border-atmospheric-grey rounded-[2rem] p-8 hover:border-electric-blue hover:shadow-2xl hover:shadow-electric-blue/10 transition-all duration-500 relative overflow-hidden" 
+             data-name="{{ item.doctor.name | lower }}" 
+             data-specialty="{{ item.doctor.specialty | lower }}" 
+             data-hospital="{{ item.doctor.hospital | lower }}">
 
             <!-- Subtle gradient accent -->
             <div class="absolute top-0 right-0 w-32 h-32 bg-electric-blue/5 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-electric-blue/10 transition-all"></div>
@@ -90,4 +95,7 @@
     </div>
     {% endif %}
 </div>
+</div>
+
+<!-- Script block removed as requested -->
 {% endblock %}

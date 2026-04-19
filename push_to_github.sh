@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════
-#   MedApp — One-Step GitHub Deployment
+#   Clinical Couture — One-Step GitHub Deployment
 #   Usage:  bash push_to_github.sh
 #
 #   What this does:
@@ -26,7 +26,7 @@ step()    { echo -e "\n${CYAN}▶ $*${NC}"; }
 # ─────────────────────────────────────────────────────
 echo ""
 echo -e "${BLUE}╔══════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║    MedApp — Push to GitHub in One Step       ║${NC}"
+echo -e "${BLUE}║ Clinical Couture — Push to GitHub in One Step ║${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -67,7 +67,7 @@ step "Repository configuration…"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-DEFAULT_REPO="medapp"
+DEFAULT_REPO="clinical_couture"
 echo -e "  Enter a GitHub repository name (default: ${CYAN}${DEFAULT_REPO}${NC}):"
 read -r REPO_NAME
 REPO_NAME="${REPO_NAME:-$DEFAULT_REPO}"
@@ -105,7 +105,7 @@ fi
 
 git add -A
 git diff --cached --quiet && warn "Nothing new to commit." || {
-  git commit -m "🏥 Initial commit — MedApp production-ready Flask app
+  git commit -m "🏥 Initial commit — Clinical Couture production-ready Flask app
 
 Features:
 - Flask Blueprints architecture (auth, booking, chat, admin)

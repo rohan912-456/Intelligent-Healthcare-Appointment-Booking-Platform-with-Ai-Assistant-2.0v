@@ -64,7 +64,7 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center px-1">
                         <label class="text-xs font-bold uppercase tracking-widest text-primary/60">{{ form.password.label.text }}</label>
-                        <a class="text-[10px] font-bold text-electric-blue hover:underline decoration-2 underline-offset-4 uppercase tracking-widest" href="#">Forgot?</a>
+                        <a class="text-[10px] font-bold text-electric-blue hover:underline decoration-2 underline-offset-4 uppercase tracking-widest" href="{{ url_for('auth.reset_password') }}">Forgot?</a>
                     </div>
                     <div class="relative group">
                         <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 group-focus-within:text-electric-blue transition-colors">lock</span>
@@ -91,24 +91,7 @@
                 </div>
             </form>
 
-            <!-- Alternate Login Options -->
-            <div class="mt-10 pt-10 border-t border-primary/5">
-                <div class="flex items-center gap-4 text-slate-300 mb-8">
-                    <div class="h-px flex-grow bg-slate-200"></div>
-                    <span class="text-[9px] font-bold uppercase tracking-widest">Enterprise Bridge</span>
-                    <div class="h-px flex-grow bg-slate-200"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <button class="flex items-center justify-center gap-3 h-14 bg-white rounded-xl border border-outline-variant/20 text-on-surface font-bold text-xs hover:bg-surface-container-low transition-colors uppercase tracking-widest shadow-sm">
-                        <img alt="Google" class="w-4 h-4" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHlOtEI4O0bH9Gm64DAIV8LyMS5lICM3YeJyBR71145-tCuRErcRU-1tNeO090DFpWJP2CB_b2g_eAauexlKf9PQ2qAV6tYR8yuVXMUw6ly_4IxBRtjACQ0Hj4EUkxVompLqXOts0iAl1rXEfAJn0gLucbKMR5QLaPaWj5gEH1-84Lo4VT-KZe518ly0g1hvhXnnwEQzZ7uJ0kY_3kQfwmn2zi1XIryKZPyE3TIuptlA7C8-cDAg-Xe_ulrXPSk9Xc0ICDlkvyXhot"/>
-                        Google
-                    </button>
-                    <button class="flex items-center justify-center gap-3 h-14 bg-white rounded-xl border border-outline-variant/20 text-on-surface font-bold text-xs hover:bg-surface-container-low transition-colors uppercase tracking-widest shadow-sm">
-                        <span class="material-symbols-outlined text-electric-blue text-lg">shield_person</span>
-                        SSO
-                    </button>
-                </div>
-            </div>
+            <!-- Alternate Login Options Removed as Requested -->
 
             <!-- Footer Link -->
             <div class="mt-12 text-center border-t border-primary/5 pt-8">

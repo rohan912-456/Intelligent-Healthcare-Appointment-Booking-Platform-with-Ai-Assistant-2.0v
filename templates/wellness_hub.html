@@ -1,0 +1,706 @@
+{% extends "base.html" %}
+{% block title %}Wellness Hub | Clinical Couture{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Animated Gradient Hero ── */
+    .wellness-hero {
+        background: linear-gradient(135deg, #001238 0%, #002a6b 40%, #00A3FF 100%);
+        position: relative; overflow: hidden;
+    }
+    .wellness-hero::before {
+        content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+        background: radial-gradient(ellipse at 30% 50%, rgba(113,216,199,0.15) 0%, transparent 50%),
+                    radial-gradient(ellipse at 70% 20%, rgba(0,163,255,0.2) 0%, transparent 40%);
+        animation: heroFloat 20s ease-in-out infinite;
+    }
+    @keyframes heroFloat {
+        0%, 100% { transform: translate(0,0) rotate(0deg); }
+        33% { transform: translate(2%,-3%) rotate(1deg); }
+        66% { transform: translate(-1%,2%) rotate(-0.5deg); }
+    }
+    .orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.3; animation: orbDrift 15s ease-in-out infinite; }
+    .orb-1 { width: 300px; height: 300px; background: #71D8C7; top: 10%; right: 10%; }
+    .orb-2 { width: 200px; height: 200px; background: #00A3FF; bottom: 20%; left: 5%; animation-delay: -5s; }
+    .orb-3 { width: 150px; height: 150px; background: #71D8C7; top: 60%; right: 30%; animation-delay: -10s; }
+    @keyframes orbDrift {
+        0%, 100% { transform: translate(0,0); } 25% { transform: translate(20px,-30px); }
+        50% { transform: translate(-15px,20px); } 75% { transform: translate(25px,10px); }
+    }
+    .stat-number { font-variant-numeric: tabular-nums; }
+
+    /* ── Card System ── */
+    .wellness-card {
+        background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
+        border: 1px solid rgba(0,0,0,0.04); border-radius: 32px; padding: 40px;
+        transition: all 0.5s cubic-bezier(0.23,1,0.32,1); position: relative; overflow: hidden;
+    }
+    .wellness-card::before {
+        content: ''; position: absolute; inset: 0; border-radius: 32px; padding: 1px;
+        background: linear-gradient(135deg, transparent 40%, rgba(0,163,255,0.15) 60%, rgba(113,216,199,0.15) 80%);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; opacity: 0; transition: opacity 0.5s ease;
+    }
+    .wellness-card:hover::before { opacity: 1; }
+    .wellness-card:hover { transform: translateY(-6px); box-shadow: 0 32px 80px -12px rgba(0,18,56,0.12); }
+
+    /* ── BMI Gauge ── */
+    .bmi-gauge { width: 160px; height: 160px; border-radius: 50%; background: conic-gradient(from 180deg, #71D8C7 0deg, #00A3FF 180deg, #e2e8f0 180deg, #e2e8f0 360deg); display: flex; align-items: center; justify-content: center; transition: all 1s ease; }
+    .bmi-gauge-inner { width: 130px; height: 130px; border-radius: 50%; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+    /* ── BMI Suggestion Panel ── */
+    .bmi-suggestion { animation: suggestionSlide 0.6s cubic-bezier(0.23,1,0.32,1); }
+    @keyframes suggestionSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .suggestion-pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+
+    /* ── Water Fill ── */
+    .water-glass { width: 120px; height: 200px; border: 3px solid rgba(0,163,255,0.2); border-radius: 0 0 24px 24px; position: relative; overflow: hidden; background: rgba(0,163,255,0.03); }
+    .water-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,163,255,0.3), rgba(113,216,199,0.15)); transition: height 0.8s cubic-bezier(0.23,1,0.32,1); border-radius: 0 0 20px 20px; }
+    .water-fill::before { content: ''; position: absolute; top: -6px; left: 0; width: 200%; height: 12px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120'%3E%3Cpath d='M321.39 56.44c58-10.79 114.16-30.13 172-41.86 82.39-16.72 168.19-17.73 250.45-.39C823.78 31 906.67 72 985.66 92.83c70.05 18.48 146.53 26.09 214.34 3V0H0v27.35A600.21 600.21 0 00321.39 56.44z' fill='%2300A3FF' opacity='0.25'/%3E%3C/svg%3E") repeat-x; background-size: 600px 12px; animation: wave 3s linear infinite; }
+    @keyframes wave { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    .pulse-ring { animation: pulseRing 2s ease-out infinite; }
+    @keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(0,163,255,0.4); } 70% { box-shadow: 0 0 0 15px rgba(0,163,255,0); } 100% { box-shadow: 0 0 0 0 rgba(0,163,255,0); } }
+
+    /* ── Tips ── */
+    .tip-slide { animation: tipSlideIn 0.6s cubic-bezier(0.23,1,0.32,1); }
+    @keyframes tipSlideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Medicine Timeline ── */
+    .med-timeline { position: relative; }
+    .med-timeline::before { content: ''; position: absolute; left: 23px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, #71D8C7, rgba(113,216,199,0.1)); }
+    .med-item { position: relative; padding-left: 60px; }
+    .med-dot { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; border-radius: 50%; background: white; border: 3px solid #71D8C7; z-index: 2; transition: all 0.3s ease; }
+    .med-item:hover .med-dot { background: #71D8C7; box-shadow: 0 0 0 6px rgba(113,216,199,0.2); }
+
+    /* ── Nutrition Ring ── */
+    .nutrition-ring { width: 80px; height: 80px; border-radius: 50%; position: relative; }
+    .nutrition-ring svg { transform: rotate(-90deg); }
+
+    /* ── Modal ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,18,56,0.5); backdrop-filter: blur(8px); z-index: 200; display: flex; align-items: center; justify-content: center; animation: modalFadeIn 0.3s ease; }
+    .modal-content { background: white; border-radius: 32px; padding: 48px; max-width: 480px; width: 90%; box-shadow: 0 48px 120px -24px rgba(0,18,56,0.3); animation: modalSlideUp 0.4s cubic-bezier(0.23,1,0.32,1); }
+    @keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes modalSlideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Delete Button ── */
+    .med-delete { opacity: 0; transition: all 0.3s ease; }
+    .med-item:hover .med-delete { opacity: 1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ── Hero Banner ── -->
+<section class="wellness-hero rounded-b-[60px] px-12 py-32 md:py-40 relative">
+    <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+    <div class="relative z-10 max-w-7xl mx-auto">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-20">
+            <div class="space-y-10 text-center lg:text-left max-w-2xl">
+                <div class="inline-flex items-center gap-3 px-6 py-2.5 bg-white/10 backdrop-blur-xl rounded-full border border-white/10">
+                    <span class="w-2 h-2 bg-vibrant-teal rounded-full animate-pulse"></span>
+                    <span class="text-[10px] font-extrabold text-white/70 uppercase tracking-[0.3em]">Wellness Protocol Active</span>
+                </div>
+                <h1 class="text-5xl md:text-8xl font-extrabold font-syne text-white tracking-tighter leading-[0.9]">
+                    Wellness &<br/><span class="bg-gradient-to-r from-vibrant-teal to-electric-blue bg-clip-text text-transparent">Vitality Hub</span>
+                </h1>
+                <p class="text-lg text-white/50 font-medium leading-relaxed max-w-lg">Your personalized health optimization suite. Track, analyze, and elevate your daily wellness with precision-driven clinical tools.</p>
+                <div class="flex flex-wrap gap-6 justify-center lg:justify-start">
+                    <div class="flex items-center gap-3 px-6 py-3 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
+                        <span class="material-symbols-outlined text-vibrant-teal text-lg">monitoring</span>
+                        <span class="text-xs font-bold text-white/60">5 Active Modules</span>
+                    </div>
+                    <div class="flex items-center gap-3 px-6 py-3 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
+                        <span class="material-symbols-outlined text-electric-blue text-lg">sync</span>
+                        <span class="text-xs font-bold text-white/60">Real-time Sync</span>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-6">
+                {% for icon, label, sub in [('calculate','BMI','Analyzer'), ('water_drop','H₂O','Tracker'), ('restaurant','Diet','Planner'), ('prescriptions','Meds','Protocol')] %}
+                <div class="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/10 text-center hover:bg-white/15 transition-all">
+                    <span class="material-symbols-outlined text-{% if loop.index == 1 %}vibrant-teal{% elif loop.index == 2 %}electric-blue{% elif loop.index == 3 %}amber-400{% else %}rose-400{% endif %} text-3xl mb-4 block" style="font-variation-settings:'FILL' 1;">{{ icon }}</span>
+                    <p class="text-3xl font-extrabold text-white font-syne stat-number">{{ label }}</p>
+                    <p class="text-[9px] font-bold text-white/40 uppercase tracking-widest mt-2">{{ sub }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Main Content ── -->
+<div class="px-6 md:px-12 -mt-16 relative z-20 max-w-7xl mx-auto space-y-12 pb-20">
+
+    <!-- Row 1: BMI + Water -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        
+        <!-- BMI Calculator -->
+        <div class="wellness-card">
+            <div class="flex items-center justify-between mb-10">
+                <div class="flex items-center gap-5">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-electric-blue/10 to-vibrant-teal/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings:'FILL' 1;">calculate</span>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Biometric Analysis</p>
+                        <h5 class="text-xl font-extrabold text-primary font-syne tracking-tight">BMI Calculator</h5>
+                    </div>
+                </div>
+                <span class="px-4 py-1.5 bg-electric-blue/5 text-electric-blue text-[8px] font-extrabold uppercase tracking-widest rounded-full">Live</span>
+            </div>
+            
+            <div class="flex flex-col md:flex-row items-center gap-12">
+                <div class="flex-grow w-full space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em] ml-1">Height (cm)</label>
+                        <input type="number" id="bmiHeight" placeholder="175" class="w-full bg-slate-50/80 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold focus:ring-2 focus:ring-electric-blue/30 focus:border-electric-blue/30 outline-none transition-all hover:border-slate-200">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em] ml-1">Weight (kg)</label>
+                        <input type="number" id="bmiWeight" placeholder="70" class="w-full bg-slate-50/80 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold focus:ring-2 focus:ring-electric-blue/30 focus:border-electric-blue/30 outline-none transition-all hover:border-slate-200">
+                    </div>
+                </div>
+                <div class="flex-shrink-0 flex flex-col items-center gap-4">
+                    <div class="bmi-gauge" id="bmiGaugeRing">
+                        <div class="bmi-gauge-inner">
+                            <p id="bmiValue" class="text-4xl font-extrabold font-syne text-primary tracking-tighter">—</p>
+                            <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">BMI</p>
+                        </div>
+                    </div>
+                    <span id="bmiLabel" class="px-5 py-2 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-slate-50 text-slate-400 transition-all">Enter Data</span>
+                </div>
+            </div>
+
+            <!-- BMI Suggestions Panel (hidden by default) -->
+            <div id="bmiSuggestions" class="hidden mt-10 pt-8 border-t border-slate-100 bmi-suggestion">
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="material-symbols-outlined text-electric-blue text-xl" style="font-variation-settings:'FILL' 1;">clinical_notes</span>
+                    <h6 class="text-sm font-extrabold text-primary font-syne uppercase tracking-wider">Health Recommendations</h6>
+                </div>
+                
+                <!-- Diet Suggestion -->
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4 p-5 rounded-2xl bg-orange-50/60 border border-orange-100/50" id="bmiDietBox">
+                        <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="material-symbols-outlined text-orange-500 text-lg" style="font-variation-settings:'FILL' 1;">restaurant</span>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-extrabold text-orange-400 uppercase tracking-widest mb-1">Diet Plan</p>
+                            <p id="bmiDietText" class="text-xs font-bold text-slate-600 leading-relaxed"></p>
+                        </div>
+                    </div>
+
+                    <!-- Exercise Suggestion -->
+                    <div class="flex items-start gap-4 p-5 rounded-2xl bg-electric-blue/5 border border-electric-blue/10" id="bmiExerciseBox">
+                        <div class="w-10 h-10 rounded-xl bg-electric-blue/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="material-symbols-outlined text-electric-blue text-lg" style="font-variation-settings:'FILL' 1;">fitness_center</span>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-extrabold text-electric-blue uppercase tracking-widest mb-1">Exercise Protocol</p>
+                            <p id="bmiExerciseText" class="text-xs font-bold text-slate-600 leading-relaxed"></p>
+                        </div>
+                    </div>
+
+                    <!-- Lifestyle Suggestion -->
+                    <div class="flex items-start gap-4 p-5 rounded-2xl bg-vibrant-teal/5 border border-vibrant-teal/10" id="bmiLifestyleBox">
+                        <div class="w-10 h-10 rounded-xl bg-vibrant-teal/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="material-symbols-outlined text-vibrant-teal text-lg" style="font-variation-settings:'FILL' 1;">self_improvement</span>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-extrabold text-vibrant-teal uppercase tracking-widest mb-1">Lifestyle Advice</p>
+                            <p id="bmiLifestyleText" class="text-xs font-bold text-slate-600 leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-3 gap-4 mt-6">
+                    <div class="text-center p-4 bg-slate-50/60 rounded-2xl">
+                        <p id="bmiIdealMin" class="text-lg font-extrabold text-primary font-syne">—</p>
+                        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Min Ideal (kg)</p>
+                    </div>
+                    <div class="text-center p-4 bg-slate-50/60 rounded-2xl">
+                        <p id="bmiIdealMax" class="text-lg font-extrabold text-primary font-syne">—</p>
+                        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Max Ideal (kg)</p>
+                    </div>
+                    <div class="text-center p-4 bg-slate-50/60 rounded-2xl">
+                        <p id="bmiWeightDiff" class="text-lg font-extrabold font-syne">—</p>
+                        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Adjustment</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AquaFlow Water Tracker -->
+        <div class="wellness-card">
+            <div class="flex items-center justify-between mb-10">
+                <div class="flex items-center gap-5">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-electric-blue/10 to-cyan-100 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-electric-blue text-2xl" style="font-variation-settings:'FILL' 1;">water_drop</span>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Hydration Flow</p>
+                        <h5 class="text-xl font-extrabold text-primary font-syne tracking-tight">AquaFlow Tracker</h5>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p id="waterPercent" class="text-sm font-extrabold text-electric-blue">0%</p>
+                    <p class="text-[8px] font-bold text-slate-300 uppercase tracking-widest">of goal</p>
+                </div>
+            </div>
+            <div class="flex items-center justify-center gap-16">
+                <div class="flex flex-col items-center gap-6">
+                    <div class="water-glass"><div class="water-fill" id="waterFill" style="height: 0%"></div></div>
+                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Target: 2.5L</p>
+                </div>
+                <div class="flex flex-col items-center gap-8">
+                    <div class="text-center">
+                        <p id="waterCount" class="text-6xl font-extrabold font-syne text-primary stat-number">0.0</p>
+                        <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-2">Liters Today</p>
+                    </div>
+                    <div class="flex gap-4">
+                        <button onclick="updateWater(-0.25)" class="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:text-error hover:bg-error/5 hover:border-error/20 transition-all active:scale-90">
+                            <span class="material-symbols-outlined">remove</span>
+                        </button>
+                        <button onclick="updateWater(0.25)" class="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center shadow-xl shadow-primary/20 hover:scale-105 active:scale-90 transition-all pulse-ring">
+                            <span class="material-symbols-outlined">add</span>
+                        </button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="updateWater(0.5)" class="px-4 py-2 bg-electric-blue/5 text-electric-blue text-[9px] font-extrabold rounded-xl hover:bg-electric-blue/10 transition-all uppercase tracking-wider">+0.5L</button>
+                        <button onclick="updateWater(1.0)" class="px-4 py-2 bg-electric-blue/5 text-electric-blue text-[9px] font-extrabold rounded-xl hover:bg-electric-blue/10 transition-all uppercase tracking-wider">+1.0L</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Tips + Diet -->
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
+        <!-- Vitality Tips -->
+        <div class="lg:col-span-3 wellness-card text-white border-none relative overflow-hidden" style="background: linear-gradient(135deg, #001238, #002a6b);">
+            <div class="absolute top-0 right-0 w-80 h-80 bg-electric-blue/10 blur-[100px] rounded-full -mr-40 -mt-40"></div>
+            <div class="absolute bottom-0 left-0 w-60 h-60 bg-vibrant-teal/10 blur-[80px] rounded-full -ml-30 -mb-30"></div>
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-12">
+                    <div class="flex items-center gap-5">
+                        <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/10">
+                            <span class="material-symbols-outlined text-vibrant-teal text-2xl" style="font-variation-settings:'FILL' 1;">lightbulb</span>
+                        </div>
+                        <div>
+                            <p class="text-[9px] font-extrabold text-white/30 uppercase tracking-[0.2em]">Daily Vitality Logic</p>
+                            <h5 class="text-xl font-extrabold font-syne tracking-tight">Health Insights</h5>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 bg-vibrant-teal rounded-full animate-pulse"></span>
+                        <span class="text-[9px] font-extrabold text-white/30 uppercase tracking-widest">Auto-Rotating</span>
+                    </div>
+                </div>
+                <div class="min-h-[140px] flex items-center mb-12">
+                    <div class="flex items-start gap-6">
+                        <span class="material-symbols-outlined text-vibrant-teal text-4xl mt-1 flex-shrink-0 opacity-60" style="font-variation-settings:'FILL' 1;">format_quote</span>
+                        <p id="tipText" class="text-2xl md:text-3xl font-bold font-syne leading-snug transition-all duration-500 tip-slide">Maintain a consistent sleep cycle to optimize cognitive synchronization.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex gap-2" id="tipDots">
+                        <span class="w-8 h-1.5 rounded-full bg-electric-blue transition-all"></span>
+                        <span class="w-3 h-1.5 rounded-full bg-white/10 transition-all"></span>
+                        <span class="w-3 h-1.5 rounded-full bg-white/10 transition-all"></span>
+                        <span class="w-3 h-1.5 rounded-full bg-white/10 transition-all"></span>
+                        <span class="w-3 h-1.5 rounded-full bg-white/10 transition-all"></span>
+                    </div>
+                    <div class="flex-grow h-0.5 bg-white/5 rounded-full overflow-hidden ml-4">
+                        <div id="tipProgress" class="h-full bg-gradient-to-r from-electric-blue to-vibrant-teal transition-all duration-[5000ms] linear rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dietary Roadmap -->
+        <div class="lg:col-span-2 wellness-card bg-gradient-to-br from-orange-50/50 to-amber-50/30 border-orange-100/50">
+            <div class="flex items-center gap-5 mb-10">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-100 to-amber-50 flex items-center justify-center shadow-sm shadow-orange-200/30">
+                    <span class="material-symbols-outlined text-orange-500 text-2xl" style="font-variation-settings:'FILL' 1;">restaurant</span>
+                </div>
+                <div>
+                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Nutrition Control</p>
+                    <h5 class="text-xl font-extrabold text-primary font-syne tracking-tight">Dietary Roadmap</h5>
+                </div>
+            </div>
+            <div class="space-y-6">
+                <div class="p-6 rounded-2xl bg-white/80 border border-orange-100/50 shadow-sm">
+                    <p id="dietProtocol" class="text-[11px] font-bold text-orange-800 leading-relaxed uppercase tracking-wider">Initializing Dietary Protocol Analysis...</p>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    {% for pct, color, name in [('70%','#f97316','Carbs'),('50%','#71D8C7','Protein'),('30%','#00A3FF','Fats')] %}
+                    <div class="text-center p-4 bg-white/60 rounded-2xl border border-orange-100/30">
+                        <div class="nutrition-ring mx-auto mb-3">
+                            <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="#f1f5f9" stroke-width="6"/><circle cx="40" cy="40" r="34" fill="none" stroke="{{ color }}" stroke-width="6" stroke-dasharray="214" stroke-dashoffset="{{ (214 * (1 - (pct|replace('%','')|int / 100)))|int }}" stroke-linecap="round"/></svg>
+                            <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-sm font-extrabold font-syne" style="color:{{ color }}">{{ pct }}</span>
+                        </div>
+                        <p class="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest">{{ name }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-white/60 border border-orange-100/30">
+                        <span class="w-2 h-2 rounded-full bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.5)]"></span>
+                        <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Optimized Caloric Flux</p>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-white/60 border border-orange-100/30">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]"></span>
+                        <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Enzymatic Core Support</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 3: Medicine Protocol Hub -->
+    <div class="wellness-card">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-14">
+            <div class="flex items-center gap-5">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-vibrant-teal/10 to-emerald-50 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-vibrant-teal text-2xl" style="font-variation-settings:'FILL' 1;">prescriptions</span>
+                </div>
+                <div>
+                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Current Regimen</p>
+                    <h5 class="text-xl font-extrabold text-primary font-syne tracking-tight">Medicine Protocol Hub</h5>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="medCount" class="px-4 py-2 bg-vibrant-teal/5 text-vibrant-teal text-[9px] font-extrabold uppercase tracking-wider rounded-xl flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-vibrant-teal rounded-full"></span> <span id="medCountNum">3</span> Active
+                </span>
+                <button onclick="openMedModal()" class="px-6 py-3 bg-primary text-white text-[9px] font-extrabold uppercase tracking-[0.2em] rounded-2xl hover:bg-electric-blue transition-all shadow-lg shadow-primary/10 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base">add</span> Add Entry
+                </button>
+            </div>
+        </div>
+
+        <div class="med-timeline space-y-6" id="medTimeline">
+            <!-- Medicines rendered by JS -->
+        </div>
+        
+        <div id="medEmpty" class="hidden py-16 flex flex-col items-center justify-center text-center gap-4">
+            <div class="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center">
+                <span class="material-symbols-outlined text-slate-300 text-3xl">medication</span>
+            </div>
+            <p class="text-sm font-extrabold text-slate-300 font-syne">No medicines added yet</p>
+            <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Click "Add Entry" to start your protocol</p>
+        </div>
+    </div>
+</div>
+
+<!-- ── Add Medicine Modal ── -->
+<div id="medModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="flex items-center justify-between mb-10">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-vibrant-teal/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-vibrant-teal text-xl" style="font-variation-settings:'FILL' 1;">medication</span>
+                </div>
+                <h3 class="text-lg font-extrabold text-primary font-syne">New Medicine Entry</h3>
+            </div>
+            <button onclick="closeMedModal()" class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-error hover:bg-error/5 transition-all">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+        <form id="medForm" class="space-y-6">
+            <div class="space-y-2">
+                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em] ml-1">Medicine Name *</label>
+                <input type="text" id="medName" placeholder="e.g. Vitamin D3" required class="w-full bg-slate-50/80 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold focus:ring-2 focus:ring-vibrant-teal/30 focus:border-vibrant-teal/30 outline-none transition-all">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em] ml-1">Time *</label>
+                    <input type="time" id="medTime" required class="w-full bg-slate-50/80 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold focus:ring-2 focus:ring-vibrant-teal/30 focus:border-vibrant-teal/30 outline-none transition-all">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em] ml-1">Frequency *</label>
+                    <select id="medFreq" required class="w-full bg-slate-50/80 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold focus:ring-2 focus:ring-vibrant-teal/30 focus:border-vibrant-teal/30 outline-none transition-all appearance-none">
+                        <option value="Daily — Morning">Daily — Morning</option>
+                        <option value="After Lunch">After Lunch</option>
+                        <option value="Before Bed">Before Bed</option>
+                        <option value="Twice Daily">Twice Daily</option>
+                        <option value="As Needed">As Needed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.2em] ml-1">Notes (optional)</label>
+                <input type="text" id="medNotes" placeholder="e.g. Take with food" class="w-full bg-slate-50/80 border border-slate-100 rounded-2xl py-4 px-6 text-sm font-bold focus:ring-2 focus:ring-vibrant-teal/30 focus:border-vibrant-teal/30 outline-none transition-all">
+            </div>
+            <button type="submit" class="w-full py-4 bg-primary text-white font-extrabold text-[10px] uppercase tracking-[0.2em] rounded-2xl hover:bg-electric-blue transition-all shadow-xl shadow-primary/10 flex items-center justify-center gap-3 mt-4">
+                <span class="material-symbols-outlined text-lg">add_circle</span> Add to Protocol
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // ═══════════════════════════════════════════════════
+    // BMI CALCULATOR WITH HEALTH SUGGESTIONS
+    // ═══════════════════════════════════════════════════
+    const bmiHeight = document.getElementById('bmiHeight');
+    const bmiWeight = document.getElementById('bmiWeight');
+    const bmiValueText = document.getElementById('bmiValue');
+    const bmiLabel = document.getElementById('bmiLabel');
+    const bmiGaugeRing = document.getElementById('bmiGaugeRing');
+    const dietProtocol = document.getElementById('dietProtocol');
+    const bmiSuggestions = document.getElementById('bmiSuggestions');
+
+    const healthData = {
+        underweight: {
+            diet: "Focus on calorie-dense, nutrient-rich foods. Include whole grains, lean proteins (eggs, chicken, fish), healthy fats (avocado, nuts, olive oil), and dairy. Eat 5-6 smaller meals daily instead of 3 large ones. Add protein shakes or smoothies between meals.",
+            exercise: "Prioritize strength training 3-4x/week to build muscle mass. Focus on compound exercises (squats, deadlifts, bench press). Limit excessive cardio. Include yoga for flexibility and stress management.",
+            lifestyle: "Ensure 7-9 hours of quality sleep nightly. Manage stress through mindfulness as cortisol can suppress appetite. Keep a food journal to track caloric intake and aim for a 300-500 calorie surplus daily."
+        },
+        healthy: {
+            diet: "Maintain a balanced plate: 50% vegetables & fruits, 25% lean protein, 25% whole grains. Stay hydrated with 2-3L of water daily. Include omega-3 rich foods like salmon and walnuts. Limit processed sugar and refined carbohydrates.",
+            exercise: "Follow a mixed routine: 150 mins moderate cardio + 2-3 strength sessions per week. Include flexibility work (stretching, yoga). Try interval training for cardiovascular health. Stay active with 8,000-10,000 steps daily.",
+            lifestyle: "You're in an optimal range — maintain your current habits. Focus on sleep quality (7-8 hrs), stress management, and regular health checkups. Consider preventive supplements like Vitamin D and B12 based on your blood work."
+        },
+        overweight: {
+            diet: "Create a modest caloric deficit of 300-500 calories/day. Increase fiber intake (vegetables, legumes, whole grains) to stay fuller longer. Reduce refined carbs and sugary drinks. Practice portion control using smaller plates. Prioritize protein at every meal.",
+            exercise: "Start with 30 mins brisk walking daily, gradually increasing to 45-60 mins. Add 2-3 strength training sessions per week to boost metabolism. Try swimming or cycling for joint-friendly cardio. Consider HIIT workouts 1-2x/week for fat loss.",
+            lifestyle: "Track your meals with a food diary for accountability. Get 7-8 hrs of sleep — poor sleep increases hunger hormones. Manage stress eating by identifying emotional triggers. Set realistic goals: aim for 0.5-1 kg loss per week for sustainable results."
+        },
+        obese: {
+            diet: "Consult a nutritionist for a personalized meal plan. Focus on whole, unprocessed foods. Eliminate sugary beverages completely — switch to water, green tea, or infused water. Eat slowly and mindfully. Consider an anti-inflammatory diet rich in vegetables, berries, and lean proteins.",
+            exercise: "Begin with low-impact activities: 15-20 min walks, swimming, or stationary cycling. Gradually increase duration before intensity. Work with a trainer if possible. Chair exercises and water aerobics are excellent starting points. Consistency matters more than intensity.",
+            lifestyle: "Seek medical consultation for a comprehensive health assessment. Prioritize sleep hygiene and stress reduction. Join a support group or find an accountability partner. Celebrate non-scale victories (energy levels, mood, mobility). Consider working with a behavioral therapist for lasting habit change."
+        }
+    };
+
+    function calculateBMI() {
+        const h = parseFloat(bmiHeight.value) / 100;
+        const w = parseFloat(bmiWeight.value);
+        if (h > 0 && w > 0) {
+            const bmi = (w / (h * h)).toFixed(1);
+            bmiValueText.innerText = bmi;
+
+            const clampedBmi = Math.min(40, Math.max(10, bmi));
+            const angle = ((clampedBmi - 10) / 30) * 360;
+            let label, colorClass, bgClass, protocol, gaugeColor, category;
+
+            if (bmi < 18.5) {
+                label = "Underweight"; colorClass = "text-amber-500"; bgClass = "bg-amber-500/10";
+                protocol = "High-Protein / Caloric Surplus Protocol"; gaugeColor = "#f59e0b"; category = "underweight";
+            } else if (bmi < 25) {
+                label = "Healthy Weight"; colorClass = "text-vibrant-teal"; bgClass = "bg-vibrant-teal/10";
+                protocol = "Standard Maintenance & Vitality Optimization"; gaugeColor = "#71D8C7"; category = "healthy";
+            } else if (bmi < 30) {
+                label = "Overweight"; colorClass = "text-primary"; bgClass = "bg-primary/10";
+                protocol = "Low-Carb / Metabolic Conditioning Protocol"; gaugeColor = "#001238"; category = "overweight";
+            } else {
+                label = "Obese Range"; colorClass = "text-error"; bgClass = "bg-error/10";
+                protocol = "Therapeutic Weight Management Protocol"; gaugeColor = "#ef4444"; category = "obese";
+            }
+
+            bmiLabel.innerText = label;
+            bmiLabel.className = 'px-5 py-2 rounded-full text-[9px] font-extrabold uppercase tracking-widest ' + bgClass + ' ' + colorClass + ' transition-all';
+            bmiGaugeRing.style.background = 'conic-gradient(from 180deg, ' + gaugeColor + ' ' + angle + 'deg, #e2e8f0 ' + angle + 'deg, #e2e8f0 360deg)';
+            dietProtocol.innerText = protocol;
+
+            // Show suggestions
+            const data = healthData[category];
+            document.getElementById('bmiDietText').innerText = data.diet;
+            document.getElementById('bmiExerciseText').innerText = data.exercise;
+            document.getElementById('bmiLifestyleText').innerText = data.lifestyle;
+            bmiSuggestions.classList.remove('hidden');
+
+            // Ideal weight range
+            const idealMin = (18.5 * h * h).toFixed(1);
+            const idealMax = (24.9 * h * h).toFixed(1);
+            document.getElementById('bmiIdealMin').innerText = idealMin;
+            document.getElementById('bmiIdealMax').innerText = idealMax;
+
+            const diff = w - parseFloat(idealMax);
+            const diffEl = document.getElementById('bmiWeightDiff');
+            if (diff > 0) {
+                diffEl.innerText = '-' + diff.toFixed(1) + ' kg';
+                diffEl.className = 'text-lg font-extrabold font-syne text-error';
+            } else if (w < parseFloat(idealMin)) {
+                diffEl.innerText = '+' + (parseFloat(idealMin) - w).toFixed(1) + ' kg';
+                diffEl.className = 'text-lg font-extrabold font-syne text-amber-500';
+            } else {
+                diffEl.innerText = 'On Track';
+                diffEl.className = 'text-lg font-extrabold font-syne text-vibrant-teal';
+            }
+        }
+    }
+    bmiHeight.addEventListener('input', calculateBMI);
+    bmiWeight.addEventListener('input', calculateBMI);
+
+    // ═══════════════════════════════════════════════════
+    // AQUAFLOW WATER TRACKER
+    // ═══════════════════════════════════════════════════
+    let currentWater = parseFloat(localStorage.getItem('couture_water')) || 0;
+    const waterCount = document.getElementById('waterCount');
+    const waterFill = document.getElementById('waterFill');
+    const waterPercent = document.getElementById('waterPercent');
+
+    window.updateWater = function(amount) {
+        currentWater = Math.max(0, currentWater + amount);
+        localStorage.setItem('couture_water', currentWater);
+        renderWater();
+    };
+    function renderWater() {
+        waterCount.innerText = currentWater.toFixed(1);
+        const percentage = Math.min(100, (currentWater / 2.5) * 100);
+        waterFill.style.height = percentage + '%';
+        waterPercent.innerText = Math.round(percentage) + '%';
+    }
+    renderWater();
+
+    // ═══════════════════════════════════════════════════
+    // VITALITY TIPS
+    // ═══════════════════════════════════════════════════
+    const tips = [
+        "Maintain a consistent sleep cycle to optimize cognitive synchronization.",
+        "Hydrate proactively: 500ml pre-lunch enhances metabolic efficiency.",
+        "Structured mobility breaks every 60 mins reduce clinical fatigue.",
+        "Micro-meditation (2 mins) resets the neural stress response baseline.",
+        "Optimal vitamin D synthesis requires 15 mins of direct UV exposure."
+    ];
+    let currentTipIndex = 0;
+    const tipText = document.getElementById('tipText');
+    const tipProgress = document.getElementById('tipProgress');
+    const tipDots = document.getElementById('tipDots');
+
+    function updateDots(index) {
+        const dots = tipDots.children;
+        for (let i = 0; i < dots.length; i++) {
+            dots[i].className = i === index ? 'w-8 h-1.5 rounded-full bg-electric-blue transition-all' : 'w-3 h-1.5 rounded-full bg-white/10 transition-all';
+        }
+    }
+    function rotateTip() {
+        tipText.style.opacity = '0'; tipText.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            currentTipIndex = (currentTipIndex + 1) % tips.length;
+            tipText.innerText = tips[currentTipIndex];
+            tipText.style.opacity = '1'; tipText.style.transform = 'translateY(0)';
+            tipProgress.style.width = '0%'; updateDots(currentTipIndex);
+            setTimeout(() => tipProgress.style.width = '100%', 50);
+        }, 400);
+    }
+    setInterval(rotateTip, 5000);
+    setTimeout(() => tipProgress.style.width = '100%', 100);
+    updateDots(0);
+
+    // ═══════════════════════════════════════════════════
+    // MEDICINE PROTOCOL HUB (localStorage persistence)
+    // ═══════════════════════════════════════════════════
+    const STORAGE_KEY = 'couture_medicines';
+    const defaultMeds = [
+        { id: 1, name: 'Multivitamin Complex', time: '08:00', freq: 'Daily — Morning', icon: 'wb_sunny', notes: '', checked: false },
+        { id: 2, name: 'Omega-3 Supplement', time: '13:00', freq: 'After Lunch', icon: 'lunch_dining', notes: '', checked: false },
+        { id: 3, name: 'Magnesium Citrate', time: '21:00', freq: 'Before Bed', icon: 'dark_mode', notes: '', checked: false }
+    ];
+
+    function getMeds() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : defaultMeds;
+    }
+    function saveMeds(meds) { localStorage.setItem(STORAGE_KEY, JSON.stringify(meds)); }
+
+    const freqIcons = {
+        'Daily — Morning': 'wb_sunny', 'After Lunch': 'lunch_dining',
+        'Before Bed': 'dark_mode', 'Twice Daily': 'repeat', 'As Needed': 'schedule'
+    };
+
+    function formatTime(timeStr) {
+        const [h, m] = timeStr.split(':');
+        const hour = parseInt(h);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const h12 = hour % 12 || 12;
+        return h12.toString().padStart(2, '0') + ':' + m + ' ' + ampm;
+    }
+
+    function renderMeds() {
+        const meds = getMeds();
+        const timeline = document.getElementById('medTimeline');
+        const empty = document.getElementById('medEmpty');
+        document.getElementById('medCountNum').innerText = meds.length;
+
+        if (meds.length === 0) {
+            timeline.innerHTML = '';
+            empty.classList.remove('hidden');
+            return;
+        }
+        empty.classList.add('hidden');
+
+        timeline.innerHTML = meds.map(med => {
+            const icon = med.icon || freqIcons[med.freq] || 'medication';
+            const checkedClass = med.checked ? 'line-through opacity-50' : '';
+            const checkedAttr = med.checked ? 'checked' : '';
+            return '<div class="med-item group">' +
+                '<div class="med-dot"></div>' +
+                '<div class="flex items-center justify-between p-6 rounded-2xl bg-slate-50/50 border border-slate-100 hover:border-vibrant-teal/20 hover:bg-white hover:shadow-xl hover:shadow-vibrant-teal/5 transition-all">' +
+                    '<div class="flex items-center gap-6">' +
+                        '<div class="w-11 h-11 rounded-xl bg-white border border-slate-100 flex items-center justify-center group-hover:bg-vibrant-teal/10 group-hover:border-vibrant-teal/20 transition-all">' +
+                            '<span class="material-symbols-outlined text-slate-300 text-xl group-hover:text-vibrant-teal transition-colors" style="font-variation-settings:\'FILL\' 1;">' + icon + '</span>' +
+                        '</div>' +
+                        '<div class="' + checkedClass + '">' +
+                            '<p class="text-sm font-bold text-primary">' + med.name + '</p>' +
+                            '<p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mt-1">' + formatTime(med.time) + ' • ' + med.freq + (med.notes ? ' • ' + med.notes : '') + '</p>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="flex items-center gap-3">' +
+                        '<input type="checkbox" ' + checkedAttr + ' onchange="toggleMed(' + med.id + ')" class="w-5 h-5 rounded-lg border-2 border-slate-200 text-vibrant-teal focus:ring-vibrant-teal/20 transition-all cursor-pointer">' +
+                        '<button onclick="deleteMed(' + med.id + ')" class="med-delete w-9 h-9 rounded-lg flex items-center justify-center text-slate-300 hover:text-error hover:bg-error/5 transition-all" title="Remove">' +
+                            '<span class="material-symbols-outlined text-lg">delete</span>' +
+                        '</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }
+
+    window.toggleMed = function(id) {
+        const meds = getMeds();
+        const med = meds.find(m => m.id === id);
+        if (med) { med.checked = !med.checked; saveMeds(meds); renderMeds(); }
+    };
+
+    window.deleteMed = function(id) {
+        const meds = getMeds().filter(m => m.id !== id);
+        saveMeds(meds);
+        renderMeds();
+    };
+
+    window.openMedModal = function() { document.getElementById('medModal').classList.remove('hidden'); };
+    window.closeMedModal = function() { document.getElementById('medModal').classList.add('hidden'); document.getElementById('medForm').reset(); };
+
+    // Close modal on overlay click
+    document.getElementById('medModal').addEventListener('click', function(e) {
+        if (e.target === this) closeMedModal();
+    });
+
+    document.getElementById('medForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('medName').value.trim();
+        const time = document.getElementById('medTime').value;
+        const freq = document.getElementById('medFreq').value;
+        const notes = document.getElementById('medNotes').value.trim();
+        if (!name || !time) return;
+
+        const meds = getMeds();
+        const newId = meds.length > 0 ? Math.max(...meds.map(m => m.id)) + 1 : 1;
+        meds.push({ id: newId, name, time, freq, icon: freqIcons[freq] || 'medication', notes, checked: false });
+        saveMeds(meds);
+        renderMeds();
+        closeMedModal();
+    });
+
+    // Initial render
+    renderMeds();
+});
+</script>
+{% endblock %}

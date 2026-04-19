@@ -1,4 +1,4 @@
-/* ── MedApp Main JS ──────────────────────────────────── */
+/* ── Clinical Couture Main JS ─────────────────────────── */
 
 // ── Chat Sidebar ──────────────────────────────────────
 const sidebar    = document.getElementById('chatSidebar');

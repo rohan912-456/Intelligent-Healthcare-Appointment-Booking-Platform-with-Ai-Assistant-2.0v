@@ -58,11 +58,16 @@
         .sidebar-open { transform: translateX(0) !important; }
         
         /* Flash message animations */
-        @keyframes slideInDown {
-            0% { transform: translateY(-100%); opacity: 0; }
-            100% { transform: translateY(0); opacity: 1; }
+        @keyframes slideInRight {
+            0% { transform: translateX(110%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
         }
-        .flash-animation { animation: slideInDown 0.5s ease-out forwards; }
+        @keyframes progressShrink {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        .flash-animation { animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; transition: opacity 0.3s; }
+        .animate-toast-progress > div { animation: progressShrink 5s linear forwards; }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -72,19 +77,25 @@
 
 {% if not in_portal %}
     <!-- ── STANDARD PORTAL LAYOUT (GUESTS/PATIENTS) ──────── -->
-    <nav class="fixed top-0 w-full z-[60] glass-ui transition-all duration-300 border-b border-atmospheric-grey">
-        <div class="flex justify-between items-center w-full px-8 py-5 max-w-full mx-auto">
+    <nav class="fixed top-0 w-full z-[60] glass-ui transition-all duration-300 border-b border-atmospheric-grey" style="padding-top:0;padding-bottom:0;">
+        <div class="flex justify-between items-center w-full px-8 py-3 max-w-full mx-auto">
             <div class="flex items-center gap-10">
                 <a href="{{ url_for('main.index') }}" class="flex items-center gap-3 group">
-                    <div class="w-10 h-10 rounded-xl bg-electric-blue flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
-                        <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">medical_services</span>
-                    </div>
-                    <span class="text-2xl font-bold tracking-tighter text-primary font-syne">Clinical Couture</span>
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Clinical Couture Logo" class="h-9 w-9 object-contain group-hover:scale-105 transition-transform duration-300">
+                    <span class="text-base font-extrabold tracking-tighter text-primary font-syne uppercase leading-none border-l-2 border-slate-100 pl-3">
+                        Clinical<br/><span class="text-electric-blue">Couture</span>
+                    </span>
                 </a>
                 <div class="hidden md:flex items-center gap-8">
+                    {% if not current_user.is_authenticated or current_user.role not in ['admin', 'doctor'] %}
                     <a class="{% if request.endpoint == 'main.index' %}text-electric-blue font-bold border-b-2 border-electric-blue pb-1{% else %}text-slate-500 font-medium hover:text-electric-blue{% endif %} transition-colors duration-300" href="{{ url_for('main.index') }}">Home</a>
                     <a class="{% if request.endpoint == 'booking.book' %}text-electric-blue font-bold border-b-2 border-electric-blue pb-1{% else %}text-slate-500 font-medium hover:text-electric-blue{% endif %} transition-colors duration-300" href="{{ url_for('booking.book') }}">Book Appointment</a>
                     <a class="{% if request.endpoint == 'main.contact' %}text-electric-blue font-bold border-b-2 border-electric-blue pb-1{% else %}text-slate-500 font-medium hover:text-electric-blue{% endif %} transition-colors duration-300" href="{{ url_for('main.contact') }}">Contact</a>
+                    <a class="text-slate-500 font-medium hover:text-electric-blue transition-colors duration-300 flex items-center gap-2" href="{{ url_for('booking.wellness') }}">
+                        Wellness
+                        <span class="w-1.5 h-1.5 bg-vibrant-teal rounded-full animate-pulse"></span>
+                    </a>
+                    {% endif %}
                 </div>
             </div>
             <div class="flex items-center gap-6">
@@ -114,7 +125,7 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-20 px-12 py-32 max-w-7xl mx-auto">
             <div class="space-y-10">
                 <div class="flex items-center gap-3">
-                    <span class="text-2xl font-extrabold text-primary font-syne tracking-tighter">Clinical Couture</span>
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Clinical Couture Logo" class="h-8 w-auto">
                 </div>
                 <p class="text-on-surface-variant text-sm leading-relaxed font-bold opacity-60">Defining the next generation of clinical interaction through architectural design and data precision in Nagpur.</p>
             </div>
@@ -151,13 +162,8 @@
         <!-- Sidebar Navigation -->
         <aside class="w-80 bg-white border-r border-atmospheric-grey fixed h-full flex flex-col p-10 z-[70]">
             <div class="mb-16">
-                <a href="{{ url_for('main.index') }}" class="flex flex-col gap-1">
-                    <span class="text-xl font-extrabold tracking-tighter text-primary font-syne uppercase leading-none">
-                        {% if current_user.role == 'admin' %}Couture<br/><span class="text-slate-300">Admin</span>
-                        {% elif current_user.role == 'doctor' %}Clinical<br/><span class="text-slate-300">Couture</span>
-                        {% else %}Patient<br/><span class="text-slate-300">Portal</span>{% endif %}
-                    </span>
-                    <span class="text-[9px] font-bold text-slate-400 tracking-[0.3em] uppercase">Platform V2.4</span>
+                <a href="{{ url_for('main.index') }}" class="flex items-center gap-3 group">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Clinical Couture Logo" class="h-12 w-12 object-contain group-hover:scale-105 transition-transform duration-300">
                 </a>
             </div>
 
@@ -269,13 +275,7 @@
                     <a href="{{ url_for('main.index') }}" class="group flex items-center gap-3 px-8 py-3 bg-error text-white rounded-2xl font-extrabold text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-error/20 hover:scale-105 active:scale-95 transition-all border border-error/50">
                         <span class="material-symbols-outlined text-lg group-hover:rotate-12 transition-transform">logout</span> EXIT PORTAL
                     </a>
-                    {% if current_user.role == 'admin' or current_user.role == 'doctor' %}
-                    <div class="flex items-center gap-4 bg-slate-50 px-6 py-3 rounded-2xl border border-slate-200 w-full max-md:hidden max-w-xs ml-6">
-                        <span class="material-symbols-outlined text-slate-400 text-lg">search</span>
-                        <input type="text" placeholder="SECURE SEARCH..." 
-                            class="bg-transparent border-none text-[10px] font-extrabold uppercase tracking-widest focus:ring-0 w-full placeholder:text-slate-300"/>
-                    </div>
-                    {% endif %}
+                    <!-- Global search removed as requested -->
                 </div>
 
                 <div class="flex-grow text-center">
@@ -294,6 +294,7 @@
                     </div>
                     {% elif request.path.startswith('/booking/dashboard') or request.endpoint == 'booking.dashboard' or request.endpoint == 'booking.appointments' or request.endpoint == 'booking.messages' %}
                     <div class="flex items-center gap-8 mr-10 max-lg:hidden">
+                        <span class="text-[10px] font-extrabold uppercase tracking-[0.4em] text-primary border-r border-slate-100 pr-8 mr-2">Clinical Couture</span>
                         <a href="{{ url_for('booking.dashboard') }}" class="text-[10px] font-extrabold uppercase tracking-widest {% if request.endpoint == 'booking.dashboard' %}border-b-2 border-primary pb-1 text-primary{% else %}text-slate-400{% endif %}">Dashboard</a>
                     </div>
                     {% endif %}
@@ -314,7 +315,7 @@
                                 <!-- Notifications here -->
                                 <div class="p-6 text-center text-slate-400 text-[10px] font-bold uppercase tracking-widest">No new messages</div>
                             </div>
-                            <a href="{% if current_user.role == 'doctor' %}{{ url_for('doctor.messages') }}{% else %}{{ url_for('booking.messages') }}{% endif %}" class="block p-5 text-center bg-slate-50 hover:bg-slate-100 text-[10px] font-extrabold uppercase tracking-[0.2em] text-electric-blue transition-all">View All Activity</a>
+                            <a href="{% if current_user.role == 'admin' %}{{ url_for('admin.messages') }}{% elif current_user.role == 'doctor' %}{{ url_for('doctor.messages') }}{% else %}{{ url_for('booking.messages') }}{% endif %}" class="block p-5 text-center bg-slate-50 hover:bg-slate-100 text-[10px] font-extrabold uppercase tracking-[0.2em] text-electric-blue transition-all">View All Activity</a>
                         </div>
                     </div>
 
@@ -342,20 +343,27 @@
 {% endif %}
 
 <!-- ── Flash Messages ────────────────────────────────────── -->
-<div class="fixed top-24 left-1/2 -translate-x-1/2 z-[80] w-full max-w-lg px-6 space-y-3 pointer-events-none">
+<div class="fixed bottom-10 right-10 z-[110] w-full max-w-sm flex flex-col items-end space-y-3 pointer-events-none" id="toastContainer">
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for cat, msg in messages %}
-                <div class="glass-ui p-4 rounded-2xl flex items-center justify-between border-l-4 flash-animation pointer-events-auto
+                <div class="glass-ui p-4 rounded-2xl border-l-4 shadow-2xl flash-animation pointer-events-auto w-full relative overflow-hidden group
                     {% if cat == 'success' %}border-vibrant-teal{% elif cat == 'danger' %}border-error{% else %}border-electric-blue{% endif %}" role="alert">
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined 
-                            {% if cat == 'success' %}text-vibrant-teal{% elif cat == 'danger' %}text-error{% else %}text-electric-blue{% endif %}">
-                            {% if cat == 'success' %}check_circle{% elif cat == 'danger' %}error{% else %}info{% endif %}
-                        </span>
-                        <p class="text-sm font-bold text-primary">{{ msg }}</p>
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined 
+                                {% if cat == 'success' %}text-vibrant-teal{% elif cat == 'danger' %}text-error{% else %}text-electric-blue{% endif %}">
+                                {% if cat == 'success' %}check_circle{% elif cat == 'danger' %}error{% else %}info{% endif %}
+                            </span>
+                            <p class="text-xs font-bold text-primary leading-tight">{{ msg }}</p>
+                        </div>
+                        <button class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors text-base" onclick="this.closest('[role=alert]').classList.add('opacity-0'); setTimeout(()=>this.closest('[role=alert]').remove(), 300)">close</button>
                     </div>
-                    <button class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors text-lg" onclick="this.parentElement.remove()">close</button>
+                    <!-- Progress Bar -->
+                    <div class="absolute bottom-0 left-0 h-1 bg-slate-100 w-full animate-toast-progress origin-left
+                        {% if cat == 'success' %}bg-vibrant-teal/20{% elif cat == 'danger' %}bg-error/20{% else %}bg-electric-blue/20{% endif %}">
+                        <div class="h-full {% if cat == 'success' %}bg-vibrant-teal{% elif cat == 'danger' %}bg-error{% else %}bg-electric-blue{% endif %}"></div>
+                    </div>
                 </div>
             {% endfor %}
         {% endif %}
@@ -435,8 +443,8 @@
 </div>
 
 <!-- Scripts -->
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script>
+document.addEventListener('DOMContentLoaded', () => {
     const chatSidebar = document.getElementById('chatSidebar');
     const chatToggle = document.getElementById('chatToggle');
     const closeChat = document.getElementById('closeChat');
@@ -483,7 +491,7 @@
                 if (data.count > 0) {
                     bellDot.style.backgroundColor = '#10b981'; // Vibrant Green
                     notifList.innerHTML = data.notifications.map(n => `
-                        <div class="p-6 hover:bg-slate-50 transition-all cursor-pointer border-b border-slate-50 last:border-0" onclick="window.location.href='{{ url_for('booking.messages') }}'">
+                        <div class="p-6 hover:bg-slate-50 transition-all cursor-pointer border-b border-slate-50 last:border-0" onclick="window.location.href='{% if current_user.role == "admin" %}{{ url_for("admin.messages") }}{% elif current_user.role == "doctor" %}{{ url_for("doctor.messages") }}{% else %}{{ url_for("booking.messages") }}{% endif %}'">
                             <div class="flex justify-between items-start mb-2">
                                 <span class="text-[9px] font-extrabold text-primary uppercase tracking-widest">${n.sender}</span>
                                 <span class="text-[8px] font-bold text-slate-300 uppercase">${n.time}</span>
@@ -600,6 +608,52 @@
             setTimeout(() => el.remove(), 500);
         });
     }, 5000);
+
+    // Global Search script removed
+
+    // Dynamic Toast Helper
+    window.showToast = function(type, msg) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        
+        let borderClass = 'border-electric-blue';
+        let textClass = 'text-electric-blue';
+        let bgProgress = 'bg-electric-blue/20';
+        let bgInner = 'bg-electric-blue';
+        let icon = 'info';
+
+        if(type === 'success') {
+            borderClass = 'border-vibrant-teal'; textClass = 'text-vibrant-teal'; 
+            bgProgress = 'bg-vibrant-teal/20'; bgInner = 'bg-vibrant-teal'; icon = 'check_circle';
+        } else if(type === 'danger') {
+            borderClass = 'border-error'; textClass = 'text-error';
+            bgProgress = 'bg-error/20'; bgInner = 'bg-error'; icon = 'error';
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `glass-ui p-4 rounded-2xl border-l-4 shadow-2xl flash-animation pointer-events-auto w-full relative overflow-hidden group ${borderClass}`;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="flex items-start justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined ${textClass}">${icon}</span>
+                    <p class="text-xs font-bold text-primary leading-tight">${msg}</p>
+                </div>
+                <button class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors text-base" onclick="this.closest('[role=alert]').classList.add('opacity-0'); setTimeout(()=>this.closest('[role=alert]').remove(), 300)">close</button>
+            </div>
+            <div class="absolute bottom-0 left-0 h-1 bg-slate-100 w-full animate-toast-progress origin-left ${bgProgress}">
+                <div class="h-full ${bgInner}"></div>
+            </div>
+        `;
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 500);
+        }, 5000);
+    };
+
+});
 </script>
 {% block scripts %}{% endblock %}
 </body>

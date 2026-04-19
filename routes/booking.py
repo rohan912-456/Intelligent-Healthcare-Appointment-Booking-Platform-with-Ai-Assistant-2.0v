@@ -39,7 +39,7 @@ def book():
         if current_app.config.get("MAIL_ENABLED"):
             doctor = Doctor.query.get(form.doctor_id.data)
             msg = Message(
-                subject="Your Appointment Confirmation – MedApp",
+                subject="Your Appointment Confirmation – Clinical Couture",
                 recipients=[booking.patient_email],
                 html=render_template(
                     "email/confirm.html",
@@ -71,6 +71,13 @@ def book():
         form.patient_email.data = current_user.email
 
     return render_template("book.html", form=form, doctors=doctors)
+
+
+@booking_bp.route("/wellness")
+@login_required
+def wellness():
+    """Standalone Wellness & Vitality Hub."""
+    return render_template("wellness_hub.html")
 
 
 @booking_bp.route("/dashboard")
@@ -191,9 +198,9 @@ def export_ics(booking_id):
 
     ics_content = f"""BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//MedApp//NONSGML v1.0//EN
+PRODID:-//Clinical Couture//NONSGML v1.0//EN
 BEGIN:VEVENT
-UID:{booking.id}@medapp.local
+UID:{booking.id}@clinicalcouture.local
 DTSTAMP:{dtstamp}
 DTSTART:{dtstart}
 DTEND:{dtend}
@@ -205,7 +212,7 @@ END:VCALENDAR"""
 
     response = Response(ics_content.strip(), mimetype='text/calendar')
     response.headers[
-        "Content-Disposition"] = f"attachment; filename=medapp_appointment_{booking.id}.ics"
+        "Content-Disposition"] = f"attachment; filename=clinical_couture_appointment_{booking.id}.ics"
     return response
 
 

@@ -53,10 +53,6 @@ def create_app(env=None):
     return app
 
 
-# Create the app instance for Vercel/WSGI
-app = create_app()
-
-
 def _seed_data(app):
     from models import Doctor, User
     from extensions import db
@@ -121,6 +117,10 @@ def _seed_data(app):
         db.session.commit()
         app.logger.info(
             "Seeded %d doctors with login accounts.", len(doc_data))
+
+
+# Create the app instance for Vercel/WSGI
+app = create_app()
 
 
 if __name__ == "__main__":

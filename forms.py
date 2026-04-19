@@ -32,6 +32,16 @@ class LoginForm(FlaskForm):
     submit = SubmitField("Sign In")
 
 
+class DirectResetPasswordForm(FlaskForm):
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    password = PasswordField("New Password", validators=[
+        DataRequired(), Length(8, 128),
+        Regexp(r"(?=.*[A-Z])(?=.*\d)", message="Must contain a capital letter and a number.")
+    ])
+    confirm = PasswordField("Confirm Password", validators=[DataRequired(), EqualTo("password")])
+    submit = SubmitField("Reset Password")
+
+
 class BookingForm(FlaskForm):
     doctor_id = SelectField("Doctor", coerce=int, validators=[DataRequired()])
     patient_name = StringField("Your Name", validators=[DataRequired(), Length(2, 120)])

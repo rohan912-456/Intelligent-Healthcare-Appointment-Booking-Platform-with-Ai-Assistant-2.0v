@@ -69,7 +69,7 @@ def reply_message(message_id):
         return redirect(url_for("admin.messages"))
 
     reply = ContactMessage(
-        name="Admin (MedApp Support)",
+        name="Admin (Clinical Couture Support)",
         email=current_user.email,
         message=reply_text,
         sender_id=current_user.id,

@@ -26,7 +26,7 @@ with app.app_context():
     print(f"Admin account: {admin.email}")
 
     login_res = client.post('/auth/login', data={
-        'email': admin.email, 'password': 'Admin@123', 'remember': False
+        'email': admin.email, 'password': 'Admin@1234', 'remember': False
     }, follow_redirects=True)
     print(f"Admin login response: {login_res.status_code}")
 
@@ -69,7 +69,7 @@ with app.app_context():
         # Most patients were seeded as doctors; use admin as fallback test
     # Login as admin again to test /booking paths are admin-accessible too
     client.post('/auth/login', data={
-        'email': admin.email, 'password': 'Admin@123', 'remember': False
+        'email': admin.email, 'password': 'Admin@1234', 'remember': False
     })
     r3 = client.get('/booking/messages')
     if r3.status_code == 200:
