@@ -4,21 +4,22 @@ dot = """
 digraph G {
   rankdir=TB;
   fontname="Helvetica,Arial,sans-serif";
-  node [fontname="Helvetica,Arial,sans-serif", shape=box, style=filled, fillcolor="#f8f9fa", color="#ced4da", penwidth=2];
+  node [fontname="Helvetica,Arial,sans-serif", shape=box, style=filled,
+        fillcolor="#f8f9fa", color="#ced4da", penwidth=2];
   edge [fontname="Helvetica,Arial,sans-serif", color="#007bff", penwidth=1.5];
-  
+
   Start [shape=oval, fillcolor="#28a745", fontcolor="white", color="#218838", label="START"];
   End [shape=oval, fillcolor="#dc3545", fontcolor="white", color="#c82333", label="END"];
-  
+
   Start -> "Access Clinical Couture";
   "Access Clinical Couture" -> "Is Registered?" [arrowhead=vee];
-  
+
   "Is Registered?" [shape=diamond, fillcolor="#ffc107", color="#e0a800", height=0.8];
-  
+
   "Is Registered?" -> "Register" [label=" No "];
   "Is Registered?" -> "Login" [label=" Yes "];
   "Register" -> "Login" [arrowhead=vee];
-  
+
   "Login" -> "Role-Based Redirection" [arrowhead=vee];
   "Role-Based Redirection" [shape=diamond, fillcolor="#17a2b8", fontcolor="white", color="#138496", height=0.8];
 
