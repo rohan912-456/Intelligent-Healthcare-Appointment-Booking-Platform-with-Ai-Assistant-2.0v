@@ -136,6 +136,7 @@ def export_report():
     bookings = Booking.query.all()
     output = io.StringIO()
     writer = csv.writer(output)
+    writer.writerow(["ID", "Patient Name", "Doctor Name", "Date", "Time", "Status", "Reason"])
     for b in bookings:
         writer.writerow([b.id, b.patient_name, b.doctor.name, b.appointment_date,
                          b.appointment_time, b.status, b.reason])
